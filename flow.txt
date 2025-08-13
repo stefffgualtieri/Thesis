@@ -1,0 +1,59 @@
+[main.py]
+    |
+    v
++---------------------------+
+| load_and_encode_dataset() |
++---------------------------+
+    |  (scelta: iris/cancer/wine)
+    |---> carica X, y
+    |---> MinMaxScaler (0..255 default)
+    |---> rank-order temporal encoding
+    |---> train_test_split (stratify=y)
+    v
+ (X_train_spikes, y_train, X_test_spikes, y_test)
+    |
+    v
++--------------------+
+| define_objective() |
++--------------------+
+    |  costruisce una closure:
+    |  objective(w) -> loss
+    |  (usa encoder + simulazione SNN)
+    v
+ objective
+    |
+    v
++-----------------------+
+|  Optimizer (stub)     |
+|  - HOA (prossimo)     |
+|  - altri metaeuristici|
++-----------------------+
+    |
+    v
+ best_w, history
+    |
+    v
++-------------------------+
+|  Valutazione finale     |
+|  test_accuracy(best_w)  |
++-------------------------+
+
+
+
+Struttura file:
+repo/
+├─ data/                     # eventuali CSV futuri
+├─ snn/
+│  ├─ model.py               # definizione SNN (PyTorch/Norse)
+│  ├─ simulate.py            # forward che produce spike times
+│  └─ loss.py                # temporal fitness (MSE tempi/target)
+├─ optimizers/
+│  ├─ hiking_optimization.py # HOA (Python)
+│  └─ common.py              # util condivise (bounds, init, history)
+├─ encoding/
+│  └─ rank_order.py          # helper per rank-order temporal encoding
+├─ datasets/
+│  └─ loaders.py             # load_and_encode_dataset()
+├─ experiments/
+│  └─ main.py                # entrypoint
+└─ README.md
