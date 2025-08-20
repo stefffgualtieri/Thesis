@@ -12,11 +12,11 @@ load_and_encode_dataset:
         - time_max: 
         - test_size: the size of the test and train set
     
-    load_and_encode_datasets: uses a MinMaxScaler to normalize the data between [0, 1], then calls
-    rank_order_encoding to encode the values with 'Rank Encoding', and finalli it returns the result of 
+    Uses a MinMaxScaler to normalize the data between [0, 1], then calls
+    rank_order_encoding to encode the values with 'Rank Encoding', and finally it returns the result of 
     train_test_split (stratify=y is used to keep balance between the classies)
 
-    rank order encoding: takes as input the datasets, and for each feature apply rank encoding of the paper
+rank order encoding: takes as input the datasets, and for each feature apply rank encoding of the paper
 '''
 
 def load_and_encode_dataset(dataset_name = "iris", time_min = 0, time_max = 255, test_size = 0.5, random_state = 42):
@@ -49,8 +49,8 @@ def rank_order_encoding(X, time_min, time_max):
         spike_times = np.zeros_like(X)
         for i in range(X.shape[1]):
             x = X[:, i]
-            N = np.min(x)
-            n = np.max(x)
-            m = n - N if N != n else 1e-8  #to avoid division by 0
+            N = np.max(x)
+            n = np.min(x)
+            m = N - n if N != n else 1e-8  #to avoid division by 0
             spike_times[:, i] = ((time_max - time_min) * x) / m  + ((time_min * N - time_max * n) / m)
         return spike_times

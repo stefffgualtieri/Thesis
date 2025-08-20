@@ -1,35 +1,36 @@
 import numpy as np
 
+"""
+Hiking Optimization Algorithm (HOA) - Traduzione Python dalla versione MATLAB v2 (Tobler's Hiking Function)
+
+Args:
+    obj_fun (callable): funzione obiettivo che riceve un array 1D (posizione) e restituisce fitness (float)
+    lb (float or array-like): limite inferiore
+    ub (float or array-like): limite superiore
+    dim (int): dimensione del problema (numero di variabili)
+    population_size (int): numero di "hikers" (soluzioni nella popolazione)
+    max_iterations (int): numero massimo di iterazioni
+
+Returns:
+    tuple: (best_position, best_fitness, fitness_per_iteration)
+"""
+
 def hiking_optimization(obj_fun, lb, ub, dim, population_size, max_iterations):
-    """
-    Hiking Optimization Algorithm (HOA) - Traduzione Python dalla versione MATLAB v2 (Tobler's Hiking Function)
-    
-    Args:
-        obj_fun (callable): funzione obiettivo che riceve un array 1D (posizione) e restituisce fitness (float)
-        lb (float or array-like): limite inferiore
-        ub (float or array-like): limite superiore
-        dim (int): dimensione del problema (numero di variabili)
-        population_size (int): numero di "hikers" (soluzioni nella popolazione)
-        max_iterations (int): numero massimo di iterazioni
-    
-    Returns:
-        tuple: (best_position, best_fitness, fitness_per_iteration)
-    """
     
     # Assicuriamoci che lb e ub siano array della giusta dimensione
     lb = np.full(dim, lb) if np.isscalar(lb) else np.array(lb)
     ub = np.full(dim, ub) if np.isscalar(ub) else np.array(ub)
     
-    # Inizializza popolazione casuale
+    # Casual initialization of the population. pop[j] is the vector-solution of the j-escursionist
     pop = lb + (ub - lb) * np.random.rand(population_size, dim)
-    fitness = np.array([obj_fun(ind) for ind in pop])
+    fitness = np.array([obj_fun(w) for w in pop])
     
-    # Salva andamento fitness
+    # Saving fitness history
     fitness_history = [np.min(fitness)]
     
-    # Ciclo principale
+    # Here we cycle until we get to max iterations
     for iteration in range(max_iterations):
-        # Migliore della popolazione
+        # Best of the population, X_best now contains the hikers with the lowest fitness
         best_idx = np.argmin(fitness)
         X_best = pop[best_idx].copy()
         
@@ -50,7 +51,7 @@ def hiking_optimization(obj_fun, lb, ub, dim, population_size, max_iterations):
             # Bound check
             new_pos = np.minimum(ub, np.maximum(lb, new_pos))
             
-            # Calcola fitness
+            # Fitness calculation, accepts iff the new solution is better than the previous one
             f_new = obj_fun(new_pos)
             if f_new < fitness[j]:
                 pop[j] = new_pos

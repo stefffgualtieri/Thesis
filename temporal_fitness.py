@@ -2,7 +2,7 @@ import numpy as np
 
 """
 Input:
-    actual_spike_times (ndarray): spike times produced by otuput neurons
+    spike_times (ndarray): spike times produced by output neurons
                                     shape: [n_samples, num_classes]
     target_classes (ndarray): the correct class of each input (shape: [n_samples])
     num_classes (int): total number of classes
@@ -16,15 +16,19 @@ Returns:
     The total error of the dataset
 """
 
-def temporal_fitness_function(actual_spike_times, target_classes, num_classes, t_max=255, tau=20):
+def temporal_fitness_function(spike_times, target_classes, num_classes, t_max=255, tau=20):
 
-    n_samples = actual_spike_times.shape[0]
+    n_samples = spike_times.shape[0]
     total_error = 0.0
 
     for i in range(n_samples):
-        target_firing_times = np.full((num_classes,), t_max)    #create a numpy array of lenght num_classes where each element is equal to t_max
+
+        #create a numpy array of lenght num_classes where each element is equal to t_max
+        target_firing_times = np.full((num_classes,), t_max)
         target_firing_times[target_classes[i]] = tau
-        errors = (actual_spike_times[i] - target_firing_times) / t_max
+        
+        #calculate the error of this sample and add to the total error
+        errors = (spike_times[i] - target_firing_times) / t_max
         squared_error = 0.5 * np.sum(errors ** 2)
         total_error += squared_error
 
