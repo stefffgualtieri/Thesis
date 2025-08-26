@@ -1,8 +1,12 @@
 import numpy as np
 import pandas as pd
+#import torch
+
 from sklearn.datasets import load_iris, load_breast_cancer, load_wine
 from sklearn.preprocessing import MinMaxScaler
 from sklearn.model_selection import train_test_split
+
+from ucimlrepo import fetch_ucirepo
 
 '''
 load_and_encode_dataset: 
@@ -26,7 +30,7 @@ def load_and_encode_dataset(dataset_name = "iris", time_min = 0, time_max = 255,
         X = data["data"]
         y = data["target"]
 
-    elif dataset_name == "cancer":
+    elif dataset_name == "breast_cancer":
         data = load_breast_cancer()
         X = data["data"]
         y = data["target"]
@@ -34,6 +38,10 @@ def load_and_encode_dataset(dataset_name = "iris", time_min = 0, time_max = 255,
         data = load_wine()
         X = data["data"]
         y = data["target"]
+    elif dataset_name == "liver":
+        df = fetch_ucirepo(id=60)
+        X = df.data.features
+        y = df.data.targets
     else:
         raise ValueError(f"Dataset '{dataset_name} not supported', Use: iris, cancer, wine")
 

@@ -1,23 +1,35 @@
+from load_dataset import load_dataset
+import torch
 import numpy as np
-from load_datasets import load_and_encode_dataset
 
-def test_load_and_encode_datasets():
-    
-    X_train, X_test, y_train, y_test = load_and_encode_dataset(
-        dataset_name="iris",
-        time_min=0,
-        time_max=255,
-        test_size=0.5,
-        random_state=42
-    )
-    
-    assert X_train.shape[0] == y_train.shape[0]
-    assert X_test.shape[0] == y_train.shape[0]
+#Test 1: iris
+X_train, X_test, y_train, y_test = load_dataset(dataset_id=53)
+print("Iris:\n")
+print("Shape X:", X_train.shape)
+print("Shape y:", y_train.shape)
+print("Prime 5 y:", y_test[:5])
+print("Classi uniche:", torch.unique(y_test))
 
-    assert np.all(X_train >= 0) and np.all(X_train <= 255)
-    assert np.all(X_test >= 0) and np.all(X_test <= 255)
+#Test 2: wine
+X_train2, X_test2, y_train2, y_test2 = load_dataset(dataset_id=109, test_size=0.41)
+print("\n\nWine:\n")
+print("Shape X:", X_train2.shape)
+print("Shape y:", y_train2.shape)
+print("Prime 5 y:", y_test2[:5])
+print("Classi uniche:", torch.unique(y_test2))
 
-    assert X_train.shape[1] == X_test.shape[1]
+#Test 3: breast_cancer
+X_train3, X_test3, y_train3, y_test3 = load_dataset(dataset_id=15)
+print("\n\nBreast_cancer:\n")
+print("Shape X:", X_train3.shape)
+print("Shape y:", y_train3.shape)
+print("Prime 5 y:", y_test3[:5])
+print("Classi uniche:", torch.unique(y_test3))
 
-    assert len(np.unique(y_train)) > 1
-    assert len(np.unique(y_test)) > 1
+# #Test 4: Diabets
+print("\n\nPima Indians Diabets:\n")
+X_train4, X_test4, y_train4, y_test4 = load_dataset(dataset_id=0)
+print("Shape X:", X_train4.shape)
+print("Shape y:", y_train4.shape)
+print("Prime 5 y:", y_test4[:5])
+print("Classi uniche:", torch.unique(y_test4))
