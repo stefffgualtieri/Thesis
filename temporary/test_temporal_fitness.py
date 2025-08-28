@@ -1,5 +1,5 @@
 import numpy as np
-from temporal_fitness import temporal_fitness_function
+from functions.temporal_fitness import temporal_fitness_function
 
 def test_temporal_fitness_function():
 

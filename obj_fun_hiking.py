@@ -1,5 +1,5 @@
 import numpy as np
-from temporal_fitness import temporal_fitness_function
+from functions.temporal_fitness import temporal_fitness_function
 
 def make_obj_fun(X_train, y_train, num_classes, t_max=255, tau=20, lambda_l2=1e-6, use_bias=True):
     """

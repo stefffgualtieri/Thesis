@@ -1,4 +1,4 @@
-from load_dataset import load_dataset
+from functions.load_dataset import load_dataset
 import torch
 import numpy as np
 

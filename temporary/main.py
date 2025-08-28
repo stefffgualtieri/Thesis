@@ -1,7 +1,7 @@
 # main.py
 import numpy as np
 from old.load_datasets import load_and_encode_dataset
-from hiking_optimization import hiking_optimization
+from optimizers.hiking_optimization import hiking_optimization
 from obj_fun_hiking import make_obj_fun
 
 if __name__ == "__main__":
