@@ -14,7 +14,7 @@ Returns:
 '''
 
 
-def temporal_fitness_function(spike_times, target_classes, t_sim=255, tau=20, device="cpu"):
+def temporal_fitness_function(spike_times, target_classes, t_sim=256, tau=20, device="cpu"):    
 
     n_samples, num_classes = spike_times.shape
 
