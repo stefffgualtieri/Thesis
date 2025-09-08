@@ -11,9 +11,9 @@ def vector_to_weights(w_flat:torch.Tensor, layers):
         n = lin.weight.numel()
         lin.weight.copy_(w_flat[i:i+n].view_as(lin.weight))
         i += n
-        n = lin.bias.numel()
-        lin.bias.copy_(w_flat[i:i+n].view_as(lin.bias))
-        i += n
+        # n = lin.bias.numel()
+        # lin.bias.copy_(w_flat[i:i+n].view_as(lin.bias))
+        # i += n
 
 
 
@@ -38,4 +38,4 @@ def get_linear_layers(model: nn.Module):
 
 #Function to return the dimension 
 def dim_from_layers(layers):
-    return sum(l.weight.numel() + l.bias.numel() for l in layers)
+    return sum(l.weight.numel() for l in layers)
