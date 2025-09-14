@@ -6,7 +6,7 @@ from sklearn.datasets import load_iris
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
 
-from models.classic_nn import NeuralNetwork
+from models.classic_nn_no_grad import NeuralNetwork
 from functions.optimizers.hiking_opt import hiking_optimization
 
 @torch.no_grad()

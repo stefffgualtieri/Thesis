@@ -5,7 +5,7 @@ from functions.load_dataset import load_dataset
 from functions.temporal_fitness import temporal_fitness_function
 from functions.optimizers.hiking_opt import hiking_optimization
 from functions.optimizers.utils import get_linear_layers, dim_from_layers, vector_to_weights, forward_to_spike_times
-from models.snn_if import NorseIFNet
+from temporary.snn_if import NorseIFNet
 
 torch.manual_seed(42)
 device = "cpu"
