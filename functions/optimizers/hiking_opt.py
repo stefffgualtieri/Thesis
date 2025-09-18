@@ -11,14 +11,22 @@ from .utils import (
 
 '''
 hiking_optimization: implementation of the hiking optimization algorithm
-
 INPUT:
-    - obj_fun: objective function to evaluate the fitness of a solution proposed
-    - lower_b:
-    - upper_b:
-    - dim: dimensionality of the solutions: for a Input+hidden+output neural network,
-      we have num_features*hidden + hidden*num_class weights and "hidden + num_classes" biases
-    - pop_size: number of hikers, 100 in the paper
+    - obj_fun: objective function to evaluate the fitness of a hiker, takes as input 
+               two torch.Tensor, spike_times_pred and target_class, and calculate the fitness
+
+    - X_train: [n_samples, input_dim] tensor, the data of the training set
+    - y_train: [n_samples] tensor, the correct class of each sample
+
+    - model_snn: the neural network model
+
+    - lower_b: lower bound
+    - upper_b: upper bound
+
+    - pop_size: number of hikers (paper: 100)
+    - max_iter : maximum number of iteration of the algorithm
+OUTPUT:
+    - 
 '''
 
 @torch.no_grad()
@@ -34,19 +42,20 @@ def hiking_optimization(
         device: str ="cpu"
 ):         
     #Extract the layers and the dimension of the weight-vector
+    #dim: num_features*hidden + hidden*num_class weights and "hidden + num_classes" biases
     layers = get_linear_layers(model_snn)
     dim = dim_from_layers(layers)
 
     #Pre-allocate:
     fit = torch.empty(pop_size, device=device, dtype=torch.float32)
     best_iteration = torch.empty(max_iter + 1, device=device, dtype=torch.float32)  #every iteration we have check wich is the best
-    best_w = torch.zeros(dim, device=device, dtype=torch.float32)
+    best_hiker = torch.zeros(dim, device=device, dtype=torch.float32)
 
     lb = torch.as_tensor(lower_b, device=device, dtype=torch.float32)
     ub = torch.as_tensor(upper_b, device=device, dtype=torch.float32)
 
     
-    #Generate initial positions of the hikers: torch.rand bewteen [0,1)
+    #Generate initial positions of the hikers:
     pop = lb + torch.rand(pop_size, dim, device=device) * (ub - lb)
     
     #Evaluate the initial fintess of the hikers:
@@ -57,7 +66,7 @@ def hiking_optimization(
     
     #Initial Best
     best_idx = int(torch.argmin(fit))
-    best_w = pop[best_idx].clone()
+    best_hiker = pop[best_idx].clone()
     best_iteration[0] = fit[best_idx].item()
     
     #Main Loop
@@ -65,7 +74,7 @@ def hiking_optimization(
 
         #global best of current fitness
         best_idx = int(torch.argmin(fit))
-        best_w = pop[best_idx].clone()
+        best_hiker = pop[best_idx].clone()
 
         #cycle for all the hikers
         for j in range(pop_size):
@@ -84,28 +93,30 @@ def hiking_optimization(
             #Tobler's Hiking Function: Vel = 6 * exp(-3.5*|slope + 0.05|)
             vel = 6.0 * torch.exp(-3.5 * torch.abs(slope + 0.05))
 
-            #actual_vel = vel + gamma * (best_w - sweep_factor * X_ini)
+            #actual_vel = vel + gamma * (best_hiker - sweep_factor * X_ini)
             gamma = torch.rand_like(X_ini)
-            actual_vel = vel + gamma * (best_w - sweep_factor * X_ini)
+            actual_vel = vel + gamma * (best_hiker - sweep_factor * X_ini)
 
-            #calculate the new positions:
-            new_pop = X_ini + actual_vel
-            new_pop = torch.clamp(new_pop, lb, ub)
+            #calculate the new position:
+            new_pos = X_ini + actual_vel
+            new_pos = torch.clamp(new_pos, lb, ub)
 
-            #evaluate the new model
-            vector_to_weights(new_pop, layers)
+            #evaluate the new position of the hiker
+            vector_to_weights(new_pos, layers)
             spike_times = forward_to_spike_times(model_snn, X_train, device)
             f_new = obj_fun(spike_times, y_train)
 
             if f_new < fit[j]:
-                pop[j] = new_pop
+                pop[j] = new_pos
                 fit[j] = f_new
+                if f_new < best_iteration[i-1]:
+                    best_hiker = new_pos.clone()
         
-        cur_best = fit.min()
+        cur_best = fit.min().item()
         best_iteration[i] = cur_best
 
     #Return the best
     final_idx = int(torch.argmin(fit))
-    best_w = pop[final_idx].clone()
+    best_hiker = pop[final_idx].clone()
     
-    return best_w, best_iteration
+    return best_hiker, best_iteration

@@ -3,15 +3,16 @@ from torch import nn
 import matplotlib.pyplot as plt
 from models.classic_nn_no_grad import NeuralNetwork
 
-from sklearn.datasets import load_breast_cancer,load_iris
+from sklearn.datasets import load_breast_cancer,load_iris, load_wine
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
 
 from functions.optimizers.hiking_opt import hiking_optimization
+import time
 
 
 #Load the data
-dataset = load_iris()
+dataset = load_wine()
 X, y = dataset.data, dataset.target
 
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size = 0.3, random_state=42)
@@ -32,14 +33,18 @@ loss_fn = nn.CrossEntropyLoss()
 
 model = NeuralNetwork(input_dim=input_dim, output_dim=output_dim)
 
+start_time = time.time()
 best_w, best_iteration = hiking_optimization(
     obj_fun=loss_fn,
     X_train=X_train_tensor,
     y_train=y_train_tensor,
     model_snn=model,
-    pop_size=100,
+    lower_b=-1,
+    upper_b=1,
+    pop_size=150,
     max_iter=500
 )
+print(f"The training took {time.time() - start_time} seconds")
 
 linear_layers = [m for m in model.modules() if isinstance(m, nn.Linear)]
 '''
