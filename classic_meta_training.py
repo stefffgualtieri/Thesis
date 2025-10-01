@@ -41,7 +41,7 @@ best_w, best_iteration = hiking_optimization(
     model_snn=model,
     lower_b=-1,
     upper_b=1,
-    pop_size=150,
+    pop_size=200,
     max_iter=500
 )
 print(f"The training took {time.time() - start_time} seconds")
