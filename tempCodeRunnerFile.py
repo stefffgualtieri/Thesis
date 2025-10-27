@@ -1,1 +1,1 @@
-load_iris()
+n_classes = int(len(np.unique(y_train)))

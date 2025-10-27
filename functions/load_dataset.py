@@ -24,7 +24,13 @@ rank_order_encoding:
     takes as input the datasets, and for each feature apply rank encoding of the paper
 '''
 
-def load_dataset(dataset_id=53, time_min = 0, time_max = 256, test_size = 0.5, random_state = 42):
+def load_dataset(
+        dataset_id=53,
+        time_min = 0,
+        time_max = 256,
+        test_size = 0.5,
+        random_state = 42
+    ):
 
     if dataset_id == 0:
         dataset = pd.read_csv("data/diabets.csv", header=None)

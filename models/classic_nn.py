@@ -2,8 +2,8 @@ import torch
 from torch import nn
 
 '''
-A classic neural network to train with meta-heuristic algorithms (torch.no_grad())
-Standard values for iris
+A classic neural network to train with back_prop
+Standard values are set for iris dataset
 '''
 class NeuralNetwork(nn.Module):
     def __init__(self, input_dim=4, hidden_dim=100, output_dim=3):

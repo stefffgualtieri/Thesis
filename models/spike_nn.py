@@ -7,8 +7,13 @@ class SpikeNeuralNetwork(nn.Module):
         super().__init__()
 
         self.fc1 = nn.Linear(input_dim, hidden_dim)
-        self.lif1 = snn.Leaky(beta=beta)
+        self.lif1 = snn.Leaky(beta=beta, threshold=0.8)
         self.fc2 = nn.Linear(hidden_dim, output_dim)
-        self.lif2 = snn.Leaky(beta=beta)
+        self.lif2 = snn.Leaky(beta=beta, threshold=0.8)
 
-    #def forward(self, x):
+    def forward(self, x, mem1, spk1, mem2):
+        cur1 = self.fc1(x)
+        spk1, mem1 = self.lif1(cur1, mem1)
+        cur2 = self.lif2(spk1)
+        spk2, mem2 = self.lif2(cur2, mem2)
+        return mem1, spk1, mem2, spk2

@@ -7,8 +7,10 @@ from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
 import matplotlib.pyplot as plt
 
+#-------------------------------------------------------------------------------------
+
 #Prepare and scale the data, then convert into tensor
-dataset = load_breast_cancer()
+dataset = load_iris()
 X = dataset.data
 y = dataset.target
 
@@ -21,13 +23,15 @@ X_test = scaler.transform(X_test)
 X_train_tensor = torch.tensor(X_train, dtype=torch.float32)
 y_train_tensor = torch.tensor(y_train, dtype=torch.long)
 
+#-------------------------------------------------------------------------------------
+
 #Inizialize the model
 input_dim = X_train_tensor.size(dim=1)
-output_dim = 2
+output_dim = 3  #MANUALLY
 model = NeuralNetwork(input_dim=input_dim, output_dim=output_dim)
 
 lr = 0.001  #learning_rate
-epochs = 400    #number of epochs
+epochs = 200    #number of epochs
 loss_fn = nn.CrossEntropyLoss()
 optimizer = torch.optim.Adam(model.parameters(), lr=lr)
 loss_arr = []

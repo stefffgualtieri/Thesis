@@ -26,7 +26,8 @@ INPUT:
     - pop_size: number of hikers (paper: 100)
     - max_iter : maximum number of iteration of the algorithm
 OUTPUT:
-    - 
+    - best_hiker (=solution)
+    - best_fitness_value
 '''
 
 @torch.no_grad()
@@ -39,22 +40,33 @@ def hiking_optimization(
         upper_b: float = 1.0,
         pop_size: int = 100,
         max_iter: int = 20,
-        device: str ="cpu"
+        device: str = "cpu"
 ):         
+    #-------------------------------------------------------------------------------------
+
     #Extract the layers and the dimension of the weight-vector
-    #dim: num_features*hidden + hidden*num_class weights and "hidden + num_classes" biases
     layers = get_linear_layers(model_snn)
+    #dim: num_features*hidden + hidden*num_class weights and "hidden + num_classes" biases
     dim = dim_from_layers(layers)
 
+    #-------------------------------------------------------------------------------------
+
     #Pre-allocate:
+
+    #for each hiker, his fitness
     fit = torch.empty(pop_size, device=device, dtype=torch.float32)
-    best_iteration = torch.empty(max_iter + 1, device=device, dtype=torch.float32)  #every iteration we have check wich is the best
+
+    #for each iteration, contains the fitness of the best hiker
+    best_iteration = torch.empty(max_iter + 1, device=device, dtype=torch.float32)
+
+    #the best hiker (=solution) found
     best_hiker = torch.zeros(dim, device=device, dtype=torch.float32)
 
     lb = torch.as_tensor(lower_b, device=device, dtype=torch.float32)
     ub = torch.as_tensor(upper_b, device=device, dtype=torch.float32)
-
     
+    #-------------------------------------------------------------------------------------
+
     #Generate initial positions of the hikers:
     pop = lb + torch.rand(pop_size, dim, device=device) * (ub - lb)
     
@@ -68,7 +80,9 @@ def hiking_optimization(
     best_idx = int(torch.argmin(fit))
     best_hiker = pop[best_idx].clone()
     best_iteration[0] = fit[best_idx].item()
-    
+
+    #-------------------------------------------------------------------------------------
+
     #Main Loop
     for i in range(1, max_iter + 1):
 
@@ -114,6 +128,8 @@ def hiking_optimization(
         
         cur_best = fit.min().item()
         best_iteration[i] = cur_best
+    
+    #-------------------------------------------------------------------------------------
 
     #Return the best
     final_idx = int(torch.argmin(fit))
