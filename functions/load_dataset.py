@@ -28,7 +28,7 @@ def load_dataset(
         dataset_id=53,
         time_min = 0,
         time_max = 256,
-        test_size = 0.5,
+        test_size = 0.2,
         random_state = 42
     ):
 

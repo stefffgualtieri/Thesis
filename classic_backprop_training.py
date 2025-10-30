@@ -8,8 +8,9 @@ from sklearn.preprocessing import StandardScaler
 import matplotlib.pyplot as plt
 
 #-------------------------------------------------------------------------------------
-
 #Prepare and scale the data, then convert into tensor
+#-------------------------------------------------------------------------------------
+
 dataset = load_iris()
 X = dataset.data
 y = dataset.target
@@ -24,8 +25,9 @@ X_train_tensor = torch.tensor(X_train, dtype=torch.float32)
 y_train_tensor = torch.tensor(y_train, dtype=torch.long)
 
 #-------------------------------------------------------------------------------------
-
 #Inizialize the model
+#-------------------------------------------------------------------------------------
+
 input_dim = X_train_tensor.size(dim=1)
 output_dim = 3  #MANUALLY
 model = NeuralNetwork(input_dim=input_dim, output_dim=output_dim)
@@ -36,7 +38,10 @@ loss_fn = nn.CrossEntropyLoss()
 optimizer = torch.optim.Adam(model.parameters(), lr=lr)
 loss_arr = []
 
+#-------------------------------------------------------------------------------------
 #Training
+#-------------------------------------------------------------------------------------
+
 for epoch in range(epochs):
     y_pred = model(X_train_tensor)
     current_loss = loss_fn(y_pred, y_train_tensor)

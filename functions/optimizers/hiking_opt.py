@@ -50,8 +50,8 @@ def hiking_optimization(
     dim = dim_from_layers(layers)
 
     #-------------------------------------------------------------------------------------
-
     #Pre-allocate:
+    #-------------------------------------------------------------------------------------
 
     #for each hiker, his fitness
     fit = torch.empty(pop_size, device=device, dtype=torch.float32)
@@ -65,6 +65,8 @@ def hiking_optimization(
     lb = torch.as_tensor(lower_b, device=device, dtype=torch.float32)
     ub = torch.as_tensor(upper_b, device=device, dtype=torch.float32)
     
+    #-------------------------------------------------------------------------------------
+    #Initialization
     #-------------------------------------------------------------------------------------
 
     #Generate initial positions of the hikers:
@@ -82,8 +84,9 @@ def hiking_optimization(
     best_iteration[0] = fit[best_idx].item()
 
     #-------------------------------------------------------------------------------------
-
     #Main Loop
+    #-------------------------------------------------------------------------------------
+
     for i in range(1, max_iter + 1):
 
         #global best of current fitness
@@ -130,8 +133,9 @@ def hiking_optimization(
         best_iteration[i] = cur_best
     
     #-------------------------------------------------------------------------------------
-
     #Return the best
+    #-------------------------------------------------------------------------------------
+    
     final_idx = int(torch.argmin(fit))
     best_hiker = pop[final_idx].clone()
     

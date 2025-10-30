@@ -1,5 +1,0 @@
-X_train4, X_test4, y_train4, y_test4 = load_dataset(dataset_id=60)
-print("Shape X:", X_train2.shape)
-print("Shape y:", y_train2.shape)
-print("Prime 5 y:", y_test2[:5])
-print("Classi uniche:", torch.unique(y_test2))

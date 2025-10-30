@@ -3,15 +3,16 @@ from torch import nn
 import matplotlib.pyplot as plt
 from models.classic_nn_no_grad import NeuralNetwork
 
-from sklearn.datasets import load_breast_cancer,load_iris, load_wine
+from sklearn.datasets import load_breast_cancer, load_iris, load_wine
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
 
 from functions.optimizers.hiking_opt import hiking_optimization
 import time
 
-
-#Load the data
+#-------------------------------------------------------------------------------------
+# Load the dataset and normalize it
+#-------------------------------------------------------------------------------------
 dataset = load_wine()
 X, y = dataset.data, dataset.target
 
@@ -26,12 +27,19 @@ X_test_tensor = torch.tensor(X_test, dtype=torch.float32)
 y_train_tensor = torch.tensor(y_train, dtype=torch.long)
 y_test_tensor = torch.tensor(y_test, dtype=torch.long)
 
-#Define the model
+#-------------------------------------------------------------------------------------
+# Define model and parameters
+#-------------------------------------------------------------------------------------
+
 input_dim = X_train_tensor.size(dim=1)
-output_dim = 3
+output_dim = 3  #MANUALLY
 loss_fn = nn.CrossEntropyLoss()
 
 model = NeuralNetwork(input_dim=input_dim, output_dim=output_dim)
+
+#-------------------------------------------------------------------------------------
+# Main Training
+#-------------------------------------------------------------------------------------
 
 start_time = time.time()
 best_w, best_iteration = hiking_optimization(
@@ -44,16 +52,15 @@ best_w, best_iteration = hiking_optimization(
     pop_size=200,
     max_iter=500
 )
-print(f"The training took {time.time() - start_time} seconds")
+
+end_time = time.time()
+print(f"The training took {end_time} seconds")
+
+#-------------------------------------------------------------------------------------
+# Copy the best weights obtained in the model 
+#-------------------------------------------------------------------------------------
 
 linear_layers = [m for m in model.modules() if isinstance(m, nn.Linear)]
-'''
-Copia i valori dal vettore piatto w_flat nei pesi.
-
-Parametri:
-    layers : lista di layer nn.Linear
-    w_flat : torch.Tensor 1D contenente tutti i parametri concatenati
-'''
 idx = 0
 with torch.no_grad():
     for lin in linear_layers:
@@ -67,9 +74,11 @@ with torch.no_grad():
             lin.bias.copy_(best_w[idx: idx + number_bias].view_as(lin.bias))
             idx += number_bias
 
-#Evaluation
-model.eval()
+#-------------------------------------------------------------------------------------
+# Evaluation
+#-------------------------------------------------------------------------------------
 
+model.eval()
 with torch.no_grad():
     logits = model(X_test_tensor)
     loss = loss_fn(logits, y_test_tensor).item()
