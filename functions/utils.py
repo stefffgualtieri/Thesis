@@ -31,3 +31,6 @@ def first_spike_times(spk_TBC: torch.Tensor) -> torch.Tensor:
     times = torch.where(mask, t_idx, torch.full_like(t_idx, T))
     first = times.min(dim=0).values             # [B,C]; se no-spike → T
     return first
+
+def to_static_seq(x_batch, T):
+    return x_batch.unsqueeze(0).expand(T, -1, -1)

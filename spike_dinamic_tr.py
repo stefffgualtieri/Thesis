@@ -18,23 +18,21 @@ output_dim = 3
 T = 257
 t_sim = 256
 tau = 20
+beta = 0.95
 
 net = SpikeNeuralNetwork(
     input_dim=input_dim,
     hidden_dim=hidden_dim,
-    output_dim=output_dim
+    output_dim=output_dim,
+    beta = beta
 )
-
-# print examples
-# for i in range(10):
-#     print(f"Example {i}: |{X_train[i][0]:.3f}|{X_train[i][1]:.3f}|{X_train[i][2]:.3f}|{X_train[i][3]:.3f}| |{y_train[i]}|")
 
 # Calculating spikes trains
 spike_train = times_to_trains(X_train, T=T)
 spike_test = times_to_trains(X_test, T=T)
 
 net.train()
-optimizer = torch.optim.Adam(net.parameters(), lr=0.1)
+optimizer = torch.optim.Adam(net.parameters(), lr=0.01)
 ce = nn.CrossEntropyLoss()
 
 num_epochs = 500
