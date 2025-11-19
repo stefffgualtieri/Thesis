@@ -16,8 +16,6 @@ hidden_dim = 10
 output_dim = 3
 
 T = 257
-t_sim = 256
-tau = 20
 beta = 0.95
 
 net = SpikeNeuralNetwork(

@@ -1,6 +1,5 @@
 import torch
 from torch import nn
-import matplotlib.pyplot as plt
 from models.classic_nn_no_grad import NeuralNetwork
 
 from sklearn.datasets import load_breast_cancer, load_iris, load_wine
@@ -49,8 +48,8 @@ best_w, best_iteration = hiking_optimization(
     model_snn=model,
     lower_b=-1,
     upper_b=1,
-    pop_size=200,
-    max_iter=500
+    pop_size=100,
+    max_iter=100
 )
 
 end_time = time.time()

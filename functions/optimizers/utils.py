@@ -29,7 +29,25 @@ def forward_to_spike_times(model_snn: nn.Module, X: torch.Tensor, device="cpu"):
 
     return spike_times.to(torch.float32)
 
+@torch.inference_mode()
+def forward_to_spike(model, x, t_sim: int = 256):
+    """
+    x: [T, B, F]
+    return: [B, C] tempi del primo spike per classe; t_sim se nessuno spike.
+    """
+    spk, _ = model(x)              # spk: [T, B, C], binario/float >0 quando spike
+    T, B, C = spk.shape
 
+    fired = spk > 0                # bool [T,B,C]
+    idx_first = torch.argmax(fired.float(), dim=0)   # [B,C] indice primo True (0 se nessuno)
+    none_fired = ~fired.any(dim=0)           # [B,C]
+
+    # mappa indice step -> tempo simulato
+    scale = float(t_sim) / float(T)
+    spike_times = idx_first.to(spk.dtype) * scale  # [B,C]
+    spike_times[none_fired] = t_sim
+
+    return spike_times
 
 #Function used to return a list of the linear layers of a network
 def get_linear_layers(model: nn.Module):
@@ -45,3 +63,6 @@ def dim_from_layers(layers):
         if l.bias is not None:
             total += l.bias.numel()
     return total
+
+def to_static_seq(x_batch, T):
+    return x_batch.unsqueeze(0).expand(T, -1, -1)
