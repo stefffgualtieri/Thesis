@@ -6,7 +6,6 @@ from .utils import (
     vector_to_weights,
     dim_from_layers,
     get_linear_layers,
-    forward_to_spike,
     to_static_seq
 )
 
@@ -43,18 +42,19 @@ def hiking_opt_spike_static(
         max_iter: int = 20,
         seed: int | None = None,
         device: str = "cpu",
-        T: int = 50
+        T: int = 256
 ):         
+    #-------------------------------------------------------------------------------------
+    # Preparing
     #-------------------------------------------------------------------------------------
     if seed is not None:
         torch.manual_seed(seed)
-
     model_snn.eval()
     X_train = X_train.to(device)
     y_train = y_train.to(device)
     y_train = y_train.to(torch.long)
 
-    #Extract the layers and the dimension of the weight-vector
+    #Extract the linear layers and the dimension of the weight-vector
     layers = get_linear_layers(model_snn)
     #dim: num_features*hidden + hidden*num_class weights and "hidden + num_classes" biases
     dim = dim_from_layers(layers)
@@ -69,7 +69,7 @@ def hiking_opt_spike_static(
     fit = torch.empty(pop_size, device=device, dtype=torch.float32)
 
     #for each iteration, contains the fitness of the best hiker
-    best_iteration = torch.empty(max_iter + 1, device=device, dtype=torch.float32)
+    best_for_iteration = torch.empty(max_iter + 1, device=device, dtype=torch.float32)
 
     #the best hiker (=solution) found
     best_hiker = torch.zeros(dim, device=device, dtype=torch.float32)
@@ -79,7 +79,7 @@ def hiking_opt_spike_static(
     #Initialization
     #-------------------------------------------------------------------------------------
 
-    #Generate initial positions:
+    #Generate random initial positions:
     pop = lb + torch.rand(pop_size, dim, device=device) * (ub - lb)
 
     # Velocità iniziale da Tobler (scalare) -> broadcast a vettore
@@ -99,7 +99,7 @@ def hiking_opt_spike_static(
     #Initial Best
     best_idx = int(torch.argmin(fit))
     best_hiker = pop[best_idx].clone()
-    best_iteration[0] = fit[best_idx].item()
+    best_for_iteration[0] = fit[best_idx].item()
 
     #-------------------------------------------------------------------------------------
     #Main Loop
@@ -156,9 +156,9 @@ def hiking_opt_spike_static(
             fit[worst_idx] = elite_fit
         
         # iteration best
-        best_iteration[i] = fit.min()
+        best_for_iteration[i] = fit.min()
         if i % 5 == 0:
-            print(f"Iteration {i}: {best_iteration[i]}")
+            print(f"Iteration {i}: {best_for_iteration[i]}")
     
     #-------------------------------------------------------------------------------------
     #Return the best
@@ -167,4 +167,4 @@ def hiking_opt_spike_static(
     final_idx = int(torch.argmin(fit))
     best_hiker = pop[final_idx].clone()
     vector_to_weights(best_hiker, layers)
-    return best_hiker, best_iteration
+    return best_hiker, best_for_iteration

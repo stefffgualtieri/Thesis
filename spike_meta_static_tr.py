@@ -41,7 +41,7 @@ beta = 0.95
 T = 50
 
 input_dim = X_train.shape[1]
-hidden_dim = 15
+hidden_dim = 10
 output_dim = int(torch.unique(y_train).numel())
 
 net = SpikeNeuralNetwork(

@@ -3,11 +3,11 @@ from torch import nn
 import snntorch as snn
 
 class SpikeNeuralNetwork(nn.Module):
-    def __init__(self, input_dim=4, hidden_dim=10, output_dim=3, beta=0.95, threshold=1):
+    def __init__(self, input_dim=4, hidden_dim=10, output_dim=3, beta=0.95, threshold=1, bias=True):
         super().__init__()
-        self.fc1 = nn.Linear(input_dim, hidden_dim)
+        self.fc1 = nn.Linear(input_dim, hidden_dim, bias=bias)
         self.lif1 = snn.Leaky(beta=beta, threshold=threshold)
-        self.fc2 = nn.Linear(hidden_dim, output_dim)
+        self.fc2 = nn.Linear(hidden_dim, output_dim, bias=bias)
         self.lif2 = snn.Leaky(beta=beta, threshold=threshold)
 
     def forward(self, x):
