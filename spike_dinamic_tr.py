@@ -15,14 +15,15 @@ input_dim = X_train.shape[1]
 hidden_dim = 10
 output_dim = 3
 
-T = 257
+T = 256
 beta = 0.95
 
 net = SpikeNeuralNetwork(
     input_dim=input_dim,
     hidden_dim=hidden_dim,
     output_dim=output_dim,
-    beta = beta
+    beta = beta, 
+    bias=False
 )
 
 # Calculating spikes trains
@@ -30,7 +31,7 @@ spike_train = times_to_trains(X_train, T=T)
 spike_test = times_to_trains(X_test, T=T)
 
 net.train()
-optimizer = torch.optim.Adam(net.parameters(), lr=0.01)
+optimizer = torch.optim.Adam(net.parameters(), lr=0.1)
 ce = nn.CrossEntropyLoss()
 
 num_epochs = 500

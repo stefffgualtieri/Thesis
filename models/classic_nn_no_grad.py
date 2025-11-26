@@ -1,10 +1,6 @@
 import torch
 from torch import nn
 
-'''
-NN with 3 layers for metaheuristic training (no-grad)
-'''
-
 class NeuralNetwork(nn.Module):
     def __init__(self, input_dim=4, hidden_dim=10, output_dim=3):
         

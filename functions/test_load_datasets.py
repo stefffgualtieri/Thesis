@@ -1,4 +1,7 @@
-'''
+import torch
+import pytest
+from load_dataset import load_dataset
+
 #Test 1: iris
 def test_load_datasets_iris():
     X_train, X_test, y_train, y_test = load_dataset(dataset_id=53)
@@ -31,10 +34,6 @@ print("Shape X:", X_train4.shape)
 print("Shape y:", y_train4.shape)
 print("Prime 5 y:", y_test4[:5])
 print("Classi uniche:", torch.unique(y_test4))
-'''
-import torch
-import pytest
-from load_dataset import load_dataset
 
 # (dataset_id, nome_descrittivo, kwargs aggiuntivi)
 CASES = [
@@ -77,3 +76,4 @@ def test_load_dataset_shapes_and_labels(dataset_id, name, extra):
     # Valori X in [0,1] se usi MinMaxScaler (opzionale; lascialo se sei sicuro del pre-processing)
     # assert torch.all(X_train >= 0) and torch.all(X_train <= 1)
     # assert torch.all(X_test  >= 0) and torch.all(X_test  <= 1)
+    print("ciao")

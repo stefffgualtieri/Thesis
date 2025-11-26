@@ -31,7 +31,7 @@ y_test = torch.from_numpy(y_test)
 
 # Parameters and network
 beta = 0.95
-T = 50
+T = 256
 tau = 20.0
 epochs = 500
 

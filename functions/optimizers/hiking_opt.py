@@ -6,7 +6,6 @@ from .utils import (
     vector_to_weights,
     dim_from_layers,
     get_linear_layers,
-    forward_to_spike_times,
 )
 
 '''
@@ -30,19 +29,23 @@ OUTPUT:
     - best_fitness_value
 '''
 
-@torch.no_grad()
+@torch.no_grad()    #don't need the gradients
 def hiking_optimization(
         obj_fun,
         X_train: torch.Tensor,
         y_train: torch.Tensor,
         model_snn: nn.Module,
-        lower_b: float = 0.0,
+        lower_b: float = -1.0,
         upper_b: float = 1.0,
         pop_size: int = 100,
         max_iter: int = 20,
         device: str = "cpu"
 ):         
-    #-------------------------------------------------------------------------------------
+    model_snn.to(device)
+    model_snn.eval()
+
+    X_train.to(device)
+    y_train.to(device)
 
     #Extract the layers and the dimension of the weight-vector
     layers = get_linear_layers(model_snn)
@@ -50,14 +53,14 @@ def hiking_optimization(
     dim = dim_from_layers(layers)
 
     #-------------------------------------------------------------------------------------
-    #Pre-allocate:
+    # Pre-allocate:
     #-------------------------------------------------------------------------------------
 
     #for each hiker, his fitness
     fit = torch.empty(pop_size, device=device, dtype=torch.float32)
 
     #for each iteration, contains the fitness of the best hiker
-    best_iteration = torch.empty(max_iter + 1, device=device, dtype=torch.float32)
+    best_for_iteration = torch.empty(max_iter + 1, device=device, dtype=torch.float32)
 
     #the best hiker (=solution) found
     best_hiker = torch.zeros(dim, device=device, dtype=torch.float32)
@@ -66,38 +69,38 @@ def hiking_optimization(
     ub = torch.as_tensor(upper_b, device=device, dtype=torch.float32)
     
     #-------------------------------------------------------------------------------------
-    #Initialization
+    # Initialization + First Evaluation
     #-------------------------------------------------------------------------------------
 
-    #Generate initial positions of the hikers:
+    # Generate initial positions of the hikers:
     pop = lb + torch.rand(pop_size, dim, device=device) * (ub - lb)
     
-    #Evaluate the initial fintess of the hikers:
+    # Evaluation
     for i in range(pop_size):
         vector_to_weights(pop[i], layers)
-        spike_times = forward_to_spike_times(model_snn, X_train, device)
-        fit[i] = obj_fun(spike_times, y_train)
+        logits = model_snn(X_train)
+        fit[i] = obj_fun(logits, y_train)
     
     #Initial Best
     best_idx = int(torch.argmin(fit))
     best_hiker = pop[best_idx].clone()
-    best_iteration[0] = fit[best_idx].item()
+    best_for_iteration[0] = fit[best_idx].item()
 
     #-------------------------------------------------------------------------------------
     #Main Loop
     #-------------------------------------------------------------------------------------
 
-    for i in range(1, max_iter + 1):
+    for i in range(1, max_iter):
 
         #global best of current fitness
         best_idx = int(torch.argmin(fit))
-        best_hiker = pop[best_idx].clone()
+        best_hiker = pop[best_idx]
 
         #cycle for all the hikers
         for j in range(pop_size):
 
             #Initial position of the hiker
-            X_ini = pop[j].clone()
+            X_ini = pop[j]
 
             #Random angle: [0,50]
             theta_deg = torch.randint(0, 51, (1,), device=device).float()
@@ -105,7 +108,7 @@ def hiking_optimization(
 
             #Slope and Sweep Factor
             slope = torch.tan(theta_rad)
-            sweep_factor = torch.randint(1, 3, (1,), device=device).float()
+            sweep_factor = 1.0 + 2.0 * torch.rand(1, device=device)
 
             #Tobler's Hiking Function: Vel = 6 * exp(-3.5*|slope + 0.05|)
             vel = 6.0 * torch.exp(-3.5 * torch.abs(slope + 0.05))
@@ -120,17 +123,15 @@ def hiking_optimization(
 
             #evaluate the new position of the hiker
             vector_to_weights(new_pos, layers)
-            spike_times = forward_to_spike_times(model_snn, X_train, device)
-            f_new = obj_fun(spike_times, y_train)
+            logits = model_snn(X_train)
+            f_new = obj_fun(logits, y_train)
 
             if f_new < fit[j]:
                 pop[j] = new_pos
                 fit[j] = f_new
-                if f_new < best_iteration[i-1]:
-                    best_hiker = new_pos.clone()
-        
-        cur_best = fit.min().item()
-        best_iteration[i] = cur_best
+        best_for_iteration[i] = fit.min()
+        if i % 10 == 0:
+            print(f"Iteration {i}: {best_for_iteration[i]}")
     
     #-------------------------------------------------------------------------------------
     #Return the best
@@ -138,5 +139,6 @@ def hiking_optimization(
     
     final_idx = int(torch.argmin(fit))
     best_hiker = pop[final_idx].clone()
+    vector_to_weights(best_hiker, layers)
     
-    return best_hiker, best_iteration
+    return best_hiker, best_for_iteration

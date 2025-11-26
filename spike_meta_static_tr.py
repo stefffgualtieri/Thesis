@@ -4,7 +4,7 @@ import numpy as np
 import time
 
 from models.spike_nn import SpikeNeuralNetwork
-from ucimlrepo import fetch_ucirepo
+from sklearn.datasets import load_iris, load_breast_cancer, load_diabetes, load_wine
 from sklearn.preprocessing import LabelEncoder, StandardScaler
 from sklearn.model_selection import train_test_split
 
@@ -14,14 +14,13 @@ from functions.utils import to_static_seq
 #----------------------------------------------------------------------------
 # Import and Pre-processing
 #----------------------------------------------------------------------------
-dataset_id = 53
-iris = fetch_ucirepo(id=dataset_id)
+iris = load_iris()
 
-X = iris.data.features.values.astype(np.float32)
-y_raw = iris.data.targets.values.ravel()
+X = iris.data.astype(np.float32)
+y_raw = iris.target
 
 le = LabelEncoder()
-y = le.fit_transform(y_raw).astype(np.int32)
+y = le.fit_transform(y_raw).astype(np.int64)
 
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, stratify=y, random_state=42)
 
@@ -38,7 +37,7 @@ y_test = torch.from_numpy(y_test)
 # Parameters and network
 #----------------------------------------------------------------------------
 beta = 0.95
-T = 50
+T = 20
 
 input_dim = X_train.shape[1]
 hidden_dim = 10
@@ -49,7 +48,8 @@ net = SpikeNeuralNetwork(
     hidden_dim=hidden_dim,
     output_dim=output_dim,
     beta=beta,
-    threshold=1.0
+    threshold=3.0,
+    bias=False
 )
 ce = nn.CrossEntropyLoss()
 
@@ -63,10 +63,10 @@ best_w, best_iteration = hiking_opt_spike_static(
     X_train=X_train,
     y_train=y_train,
     model_snn=net,
-    lower_b=-1,
-    upper_b=1,
-    pop_size=150,
-    max_iter=30,
+    lower_b=-5.0,
+    upper_b=5.0,
+    pop_size=100,
+    max_iter=100,
     seed=42,
     T=T   
 )

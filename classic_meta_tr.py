@@ -12,10 +12,10 @@ import time
 #-------------------------------------------------------------------------------------
 # Load the dataset and normalize it
 #-------------------------------------------------------------------------------------
-dataset = load_wine()
+dataset = load_iris()
 X, y = dataset.data, dataset.target
 
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size = 0.3, random_state=42)
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size = 0.2, random_state=42)
 
 scaler = StandardScaler()
 X_train = scaler.fit_transform(X_train)
@@ -31,10 +31,15 @@ y_test_tensor = torch.tensor(y_test, dtype=torch.long)
 #-------------------------------------------------------------------------------------
 
 input_dim = X_train_tensor.size(dim=1)
-output_dim = 3  #MANUALLY
+hidden_dim = 50
+output_dim = int(torch.unique(y_train_tensor).numel())
 loss_fn = nn.CrossEntropyLoss()
 
-model = NeuralNetwork(input_dim=input_dim, output_dim=output_dim)
+model = NeuralNetwork(
+    input_dim=input_dim,
+    hidden_dim=hidden_dim,
+    output_dim=output_dim
+)
 
 #-------------------------------------------------------------------------------------
 # Main Training
@@ -49,29 +54,29 @@ best_w, best_iteration = hiking_optimization(
     lower_b=-1,
     upper_b=1,
     pop_size=100,
-    max_iter=100
+    max_iter=250
 )
 
-end_time = time.time()
-print(f"The training took {end_time} seconds")
+total_time = time.time() - start_time
+print(f"The training took {total_time:.3f} seconds")
 
 #-------------------------------------------------------------------------------------
 # Copy the best weights obtained in the model 
 #-------------------------------------------------------------------------------------
 
-linear_layers = [m for m in model.modules() if isinstance(m, nn.Linear)]
-idx = 0
-with torch.no_grad():
-    for lin in linear_layers:
-        #Weights
-        number_weights = lin.weight.numel()
-        lin.weight.copy_(best_w[idx:idx + number_weights].view_as(lin.weight))
-        idx += number_weights
-        #Bias
-        if lin.bias is not None:
-            number_bias = lin.bias.numel()
-            lin.bias.copy_(best_w[idx: idx + number_bias].view_as(lin.bias))
-            idx += number_bias
+# linear_layers = [m for m in model.modules() if isinstance(m, nn.Linear)]
+# idx = 0
+# with torch.no_grad():
+#     for lin in linear_layers:
+#         #Weights
+#         number_weights = lin.weight.numel()
+#         lin.weight.copy_(best_w[idx:idx + number_weights].view_as(lin.weight))
+#         idx += number_weights
+#         #Bias
+#         if lin.bias is not None:
+#             number_bias = lin.bias.numel()
+#             lin.bias.copy_(best_w[idx: idx + number_bias].view_as(lin.bias))
+#             idx += number_bias
 
 #-------------------------------------------------------------------------------------
 # Evaluation
