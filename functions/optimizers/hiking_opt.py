@@ -81,47 +81,43 @@ def hiking_optimization(
         logits = model_snn(X_train)
         fit[i] = obj_fun(logits, y_train)
     
-    #Initial Best
+    # Saving initial Best
     best_idx = int(torch.argmin(fit))
     best_hiker = pop[best_idx].clone()
     best_for_iteration[0] = fit[best_idx].item()
 
     #-------------------------------------------------------------------------------------
-    #Main Loop
+    # Main Loop
     #-------------------------------------------------------------------------------------
 
     for i in range(1, max_iter):
-
-        #global best of current fitness
+        # Global Best and its index
         best_idx = int(torch.argmin(fit))
         best_hiker = pop[best_idx]
 
-        #cycle for all the hikers
+        # Cycle for all the hikers
         for j in range(pop_size):
-
-            #Initial position of the hiker
+            # Initial position of the hiker
             X_ini = pop[j]
 
             #Random angle: [0,50]
-            theta_deg = torch.randint(0, 51, (1,), device=device).float()
-            theta_rad = theta_deg * (math.pi / 180.0)
+            theta_deg_j = torch.randint(0, 51, (1,), device=device).float()
 
             #Slope and Sweep Factor
-            slope = torch.tan(theta_rad)
+            slope = torch.tan(theta_deg_j *(math.pi / 180.0))
             sweep_factor = 1.0 + 2.0 * torch.rand(1, device=device)
 
-            #Tobler's Hiking Function: Vel = 6 * exp(-3.5*|slope + 0.05|)
+            # Initial Velocity with Tobler
             vel = 6.0 * torch.exp(-3.5 * torch.abs(slope + 0.05))
 
-            #actual_vel = vel + gamma * (best_hiker - sweep_factor * X_ini)
+            # Actual Velocity
             gamma = torch.rand_like(X_ini)
             actual_vel = vel + gamma * (best_hiker - sweep_factor * X_ini)
 
             #calculate the new position:
-            new_pos = X_ini + actual_vel
-            new_pos = torch.clamp(new_pos, lb, ub)
+            new_pos = torch.clamp(X_ini + actual_vel, lb, ub)
 
-            #evaluate the new position of the hiker
+            # Evaluation of new position
             vector_to_weights(new_pos, layers)
             logits = model_snn(X_train)
             f_new = obj_fun(logits, y_train)
@@ -129,16 +125,20 @@ def hiking_optimization(
             if f_new < fit[j]:
                 pop[j] = new_pos
                 fit[j] = f_new
+
         best_for_iteration[i] = fit.min()
         if i % 10 == 0:
             print(f"Iteration {i}: {best_for_iteration[i]}")
-    
+        if i % 50 == 0:
+            print(f"Nuova posizione migliore hiker: {best_hiker}")
     #-------------------------------------------------------------------------------------
-    #Return the best
+    # Return the best
     #-------------------------------------------------------------------------------------
     
     final_idx = int(torch.argmin(fit))
     best_hiker = pop[final_idx].clone()
+
+    # Copy the weights of the best hiker
     vector_to_weights(best_hiker, layers)
     
     return best_hiker, best_for_iteration

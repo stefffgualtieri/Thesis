@@ -137,10 +137,10 @@ def hiking_opt_spike_static(
             #Slope
             slope_j = torch.tan(theta_rad_j)
         
-            # Initial velociti with Tobler: 6 * exp(-3.5*|slope + 0.05|)
+            # Initial velocity with Tobler
             vel = 6.0 * torch.exp(-3.5 * torch.abs(slope_j + 0.05))
 
-            # Compute actual vel
+            # Actual vel
             gamma = torch.rand_like(X_ini)
             actual_vel = vel + gamma * (best_hiker - sweep_factor * X_ini)
 

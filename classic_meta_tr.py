@@ -31,7 +31,7 @@ y_test_tensor = torch.tensor(y_test, dtype=torch.long)
 #-------------------------------------------------------------------------------------
 
 input_dim = X_train_tensor.size(dim=1)
-hidden_dim = 50
+hidden_dim = 10
 output_dim = int(torch.unique(y_train_tensor).numel())
 loss_fn = nn.CrossEntropyLoss()
 
@@ -53,7 +53,7 @@ best_w, best_iteration = hiking_optimization(
     model_snn=model,
     lower_b=-1,
     upper_b=1,
-    pop_size=100,
+    pop_size=200,
     max_iter=250
 )
 
@@ -82,10 +82,12 @@ print(f"The training took {total_time:.3f} seconds")
 # Evaluation
 #-------------------------------------------------------------------------------------
 
-model.eval()
 with torch.no_grad():
+    model.eval()
     logits = model(X_test_tensor)
     loss = loss_fn(logits, y_test_tensor).item()
+
     y_pred = logits.argmax(dim=1)
     acc = (y_pred == y_test_tensor).float().mean().item()
+
 print(f"Test Loss: {loss},\t Test Accuracy: {acc}")
