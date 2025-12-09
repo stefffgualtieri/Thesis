@@ -38,13 +38,13 @@ def forward_to_spike(model, x, t_sim: int = 256):
 
     return spike_times
 
-#Function used to return a list of the linear layers of a network
+# Return a list of the linear layers of a network
 def get_linear_layers(model: nn.Module):
     return [m for m in model.modules() if isinstance(m, nn.Linear)]
 
 
 
-#Function to return the dimension 
+# Return the number of weights and biases
 def dim_from_layers(layers):
     total = 0
     for l in layers:
@@ -53,5 +53,23 @@ def dim_from_layers(layers):
             total += l.bias.numel()
     return total
 
+# Static Training
 def to_static_seq(x_batch, T):
     return x_batch.unsqueeze(0).expand(T, -1, -1)/10
+
+
+def times_to_trains(X_times, T=257):
+    '''
+    - X_times: [B, F] with values between [0, T - 1]
+    - S: [T, B, F]
+    '''
+
+    t = X_times.round().clamp_(0, T-1).long()
+    t = (T - 1) - t
+    B, F = t.shape
+
+    S = torch.zeros(T,B,F, device= X_times.device)
+    b_ix = torch.arange(B, device=X_times.device).unsqueeze(1).expand_as(t)
+    f_ix = torch.arange(F, device=X_times.device).unsqueeze(0).expand_as(t)
+    S[t, b_ix, f_ix] = 1.0
+    return S

@@ -1,11 +1,12 @@
 import torch
-from ucimlrepo import fetch_ucirepo
 import pandas as pd
 import numpy as np
 
 from sklearn.preprocessing import MinMaxScaler, LabelEncoder
 from sklearn.model_selection import train_test_split
+from ucimlrepo import fetch_ucirepo
 
+from functions.rank_order_encoding import rank_order_encoding, rank_order_encoding_general
 '''
 load_dataset:
     Uses a MinMaxScaler to normalize the data between [0, 1], then calls
@@ -19,9 +20,6 @@ load_dataset:
         
     Output:
         - 4 tensors of torch: X_train, X_test, y_train, y_test
-
-rank_order_encoding:
-    takes as input the datasets, and for each feature apply rank encoding of the paper
 '''
 
 def load_dataset(
@@ -32,6 +30,9 @@ def load_dataset(
         random_state = 42
     ):
 
+    # ----------------------
+    # Load the dataset
+    # ----------------------
     if dataset_id == 0:
         dataset = pd.read_csv("data/diabets.csv", header=None)
         X = dataset.iloc[:, :-1].to_numpy()
@@ -41,15 +42,40 @@ def load_dataset(
         X = dataset.data.features.to_numpy()
         y = dataset.data.targets.to_numpy().ravel()
     
+    # ----------------------
+    # Normalization
+    # ----------------------
     scaler = MinMaxScaler()
-    X_norm = scaler.fit_transform(X)
+    X_norm = scaler.fit_transform(X).astype(np.float32)
 
-    X_spikes_times = rank_order_encoding(X_norm, time_min, time_max)
+    # ----------------------
+    # Rank order encoding
+    # ----------------------
+    X_norm_torch = torch.from_numpy(X_norm)
+    X_spikes_torch = rank_order_encoding(
+        X_norm_torch, 
+        time_min,
+        time_max
+    ).to(torch.float32)
+    # back to numpy
+    X_spikes = X_spikes_torch.numpy()
 
+    # ----------------------
+    # Label Encoder
+    # ----------------------
     le = LabelEncoder()
-    y_num = le.fit_transform(y)
+    y_num = le.fit_transform(y).astype(np.int64)
 
-    X_train, X_test, y_train, y_test =  train_test_split(X_spikes_times, y_num, test_size=test_size, stratify=y_num, random_state=random_state)
+    # ----------------------
+    # Train Test split
+    # ----------------------
+    X_train, X_test, y_train, y_test =  train_test_split(
+        X_spikes,
+        y_num,
+        test_size=test_size,
+        stratify=y_num,
+        random_state=random_state
+    )
     
     X_train_tensor = torch.tensor(X_train, dtype=torch.float32)
     X_test_tensor = torch.tensor(X_test, dtype=torch.float32)
@@ -57,14 +83,3 @@ def load_dataset(
     y_test_tensor = torch.tensor(y_test, dtype=torch.long)
 
     return X_train_tensor, X_test_tensor, y_train_tensor, y_test_tensor
-
-
-def rank_order_encoding(X, time_min, time_max):
-    spike_times = np.zeros_like(X)
-    for i in range(X.shape[1]):
-        x = X[:, i]
-        N = np.max(x)
-        n = np.min(x)
-        m = N - n if N != n else 1e-8
-        spike_times[:, i] = ((time_max - time_min) * x) / m  + ((time_min * N - time_max * n) / m)
-    return spike_times
