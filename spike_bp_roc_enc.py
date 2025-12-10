@@ -12,13 +12,12 @@ from models.spike_nn import SpikeNeuralNetwork
 # ------------------------------------------------------------
 # 0. Parametri SNN / codifica
 # ------------------------------------------------------------
-T = 40
+T = 20
 t_min = 0
 t_max = T - 1
 beta = 1.0
-threshold = 0.05
-hidden_dim = 64
-
+threshold = 0.1
+hidden_dim = 32
 device = "cpu"
 
 # ------------------------------------------------------------
@@ -33,6 +32,7 @@ X_train, X_test, y_train, y_test = train_test_split(
     y,
     test_size=0.2,
     random_state=42,
+    stratify=y
 )
 
 # ------------------------------------------------------------
@@ -57,7 +57,6 @@ S_test_tensor = torch.as_tensor(S_test, dtype=torch.float32, device=device)
 y_train_tensor = torch.as_tensor(y_train, device=device, dtype=torch.long)
 y_test_tensor  = torch.as_tensor(y_test,  device=device, dtype=torch.long)
 
-
 # ------------------------------------------------------------
 # 4.1 Setup for Training
 # ------------------------------------------------------------
@@ -74,7 +73,7 @@ net = SpikeNeuralNetwork(
 ).to(device)
 
 ce = nn.CrossEntropyLoss()
-opt = torch.optim.Adam(net.parameters(), lr=1e-2)
+opt = torch.optim.Adam(net.parameters(), lr=0.001)
 
 # ------------------------------------------------------------
 # 4.2 Training Loop
@@ -90,6 +89,18 @@ for epoch in range(1, num_epochs + 1):
     logits_tr = spk_tr.sum(dim=0)   #[N, C]
     loss_tr = ce(logits_tr, y_train_tensor)
     
+    # check firing rate
+    _, _, C = spk_tr.shape
+    
+    # Total number of spikes for each output neuron
+    spikes_per_neuron = spk_tr.sum(dim=(0,1)) #[C]
+    
+    # Firing Rate
+    firing_rate_per_neuron = spikes_per_neuron / (T*N)
+    
+    if epoch % 10 == 0:
+        print(f"\n\n Epoch {epoch} | Firing Rate per Neuron: {firing_rate_per_neuron}")
+    
     # Backward
     opt.zero_grad()
     loss_tr.backward()
@@ -99,17 +110,16 @@ for epoch in range(1, num_epochs + 1):
     pred_tr = logits_tr.argmax(dim=1)
     acc_tr = (pred_tr == y_train_tensor).float().mean().item()
     
-    # Eval on test
-    # net.eval()
-    # with torch.no_grad():
-    #     spk_te, _ = net(S_test_tensor)
-    #     logits_te = spk_te.sum(dim=0)
-    #     loss_te  = ce(logits_te, y_test_tensor)
-    #     acc_te = (logits_te.argmax(dim=1) == y_test_tensor).float().mean().item()
-    
-    print(
-        f"Epoch {epoch}   | "
-        f"loss_tr {loss_tr:.4f}, acc_tr {acc_tr:.4f}"
-        # f"loss_te {loss_te:.4f}, acc_te {acc_te:.4f}"
+    print(f"Epoch {epoch} | loss_tr {loss_tr:.4f}, acc_tr {acc_tr:.4f}"
     )
-            
+    
+# Eval on test
+net.eval()
+with torch.no_grad():
+    spk_te, _ = net(S_test_tensor)
+    logits_te = spk_te.sum(dim=0)
+    loss_te  = ce(logits_te, y_test_tensor)
+    acc_te = (logits_te.argmax(dim=1) == y_test_tensor).float().mean().item()
+    
+    print(f"Test loss: {loss_te:.4f}, Test accuracy: {acc_te:.4f}")
+        
