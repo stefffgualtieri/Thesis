@@ -10,7 +10,7 @@ from functions.times_to_trains import times_to_trains
 
 from models.spike_nn import SpikeNeuralNetwork
 # ------------------------------------------------------------
-# 0. Parametri SNN / codifica
+# 0. Parameters
 # ------------------------------------------------------------
 T = 20
 t_min = 0
@@ -18,6 +18,7 @@ t_max = T - 1
 beta = 1.0
 threshold = 0.1
 hidden_dim = 32
+lr = 0.001
 device = "cpu"
 
 # ------------------------------------------------------------
@@ -73,7 +74,7 @@ net = SpikeNeuralNetwork(
 ).to(device)
 
 ce = nn.CrossEntropyLoss()
-opt = torch.optim.Adam(net.parameters(), lr=0.001)
+opt = torch.optim.Adam(net.parameters(), lr=lr)
 
 # ------------------------------------------------------------
 # 4.2 Training Loop
