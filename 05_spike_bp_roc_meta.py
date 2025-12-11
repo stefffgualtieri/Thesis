@@ -1,6 +1,6 @@
 import torch
 import numpy as np
-
+import pygmo as pg
 
 from models.spike_nn import SpikeNeuralNetwork
 from functions.temporal_rank_order_encoding import temporal_rank_order_encode
