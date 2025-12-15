@@ -43,7 +43,6 @@ def get_linear_layers(model: nn.Module):
     return [m for m in model.modules() if isinstance(m, nn.Linear)]
 
 
-
 # Return the number of weights and biases
 def dim_from_layers(layers):
     total = 0

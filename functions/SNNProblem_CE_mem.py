@@ -3,7 +3,7 @@ import torch.nn as nn
 
 from functions.optimizers.utils import vector_to_weights
 
-class SNNProblem_CE:
+class SNNProblem_CE_mem:
     def __init__(
         self,
         model,
@@ -44,8 +44,8 @@ class SNNProblem_CE:
 
         self.model.eval()
         with torch.no_grad():
-            spk, _ = self.model(self.X)          # [T,B,C]
-            logits = spk.sum(dim=0)              # [B,C]
+            _, mem = self.model(self.X)          # [T,B,C]
+            logits = mem.mean(dim=0)              # [B,C]
             loss = self.ce(logits, self.y)       # CE loss
 
         return [float(loss)]

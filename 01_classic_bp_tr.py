@@ -8,7 +8,7 @@ from sklearn.preprocessing import StandardScaler
 import matplotlib.pyplot as plt
 
 #-------------------------------------------------------------------------------------
-#Prepare and scale the data, then convert into tensor
+# Prepare and scale the data, then convert into tensor
 #-------------------------------------------------------------------------------------
 
 dataset = load_iris()
