@@ -8,9 +8,9 @@ from models.spike_nn import SpikeNeuralNetwork
 from functions.temporal_rank_order_encoding import temporal_rank_order_encode
 from sklearn.datasets import load_iris, load_wine, load_breast_cancer
 from functions.times_to_trains import times_to_trains
-from functions.optimizers.utils import get_linear_layers, dim_from_layers
+from functions.utils.utils import get_linear_layers, dim_from_layers
 
-from functions.optimizers.utils import vector_to_weights
+from functions.utils.utils import vector_to_weights
 
 from sklearn.model_selection import train_test_split 
 
@@ -94,7 +94,7 @@ prob = pg.problem(SNNProblem_CE(
 ))
 
 algo = pg.algorithm(pg.pso(
-    gen=300
+    gen=100
     ))
 algo.set_verbosity(1)
 pop = pg.population(prob, size=50, seed=42)

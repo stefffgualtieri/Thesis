@@ -1,7 +1,6 @@
 import torch
-import torch.nn as nn
 
-from functions.optimizers.utils import vector_to_weights
+from functions.utils.utils import vector_to_weights
 
 class SNNProblem_CE_mem:
     def __init__(
@@ -12,6 +11,7 @@ class SNNProblem_CE_mem:
         layers,
         lb,
         ub,
+        ce,
         device = "cpu"
     ):
         self.model = model
@@ -21,7 +21,8 @@ class SNNProblem_CE_mem:
         self.lb = lb
         self.ub = ub
         self.device = device
-        self.ce = nn.CrossEntropyLoss()
+        self.ce = ce
+        self.dim = len(lb)
         
 
     def get_bounds(self):
@@ -38,14 +39,16 @@ class SNNProblem_CE_mem:
 
     def fitness(self, w_flat):
         if not isinstance(w_flat, torch.Tensor):
-            w_flat = torch.as_tensor(w_flat, dtype=torch.float32)
-            
+            w_flat = torch.as_tensor(w_flat, dtype=torch.float32, device=self.device)
+        else:
+            w_flat = w_flat.to(self.device)
+             
         vector_to_weights(w_flat, self.layers)
 
         self.model.eval()
         with torch.no_grad():
-            _, mem = self.model(self.X)          # [T,B,C]
+            spk, mem = self.model(self.X)          # [T,B,C]
             logits = mem.mean(dim=0)              # [B,C]
             loss = self.ce(logits, self.y)       # CE loss
-
+            
         return [float(loss)]

@@ -6,7 +6,7 @@ from functions.load_dataset import load_dataset
 from functions.optimizers.hiking_spike import hiking_optimization_spike
 from functions.temporal_fitness import temporal_fitness_function
 from functions.utils import times_to_trains
-from functions.optimizers.utils import forward_to_spike
+from functions.utils.utils import forward_to_spike
 from models.spike_nn import SpikeNeuralNetwork
 #-------------------------------------------------------------------------------------
 # Load and prepare the dataset dataset

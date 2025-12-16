@@ -2,7 +2,7 @@ import torch
 import torch.nn as nn
 import math
 
-from .utils import (
+from ..utils.utils import (
     vector_to_weights,
     dim_from_layers,
     get_linear_layers,

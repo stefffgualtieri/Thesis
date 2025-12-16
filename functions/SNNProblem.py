@@ -2,7 +2,7 @@ import pygmo
 import torch
 import torch.nn as nn
 
-from optimizers.utils import vector_to_weights, dim_from_layers, first_spike_times
+from functions.utils.utils import vector_to_weights, dim_from_layers, first_spike_times
 from temporal_fitness import temporal_fitness_function
 
 class SNNProblem:

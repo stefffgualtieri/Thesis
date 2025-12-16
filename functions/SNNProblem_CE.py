@@ -1,7 +1,7 @@
 import torch
 import torch.nn as nn
 
-from functions.optimizers.utils import vector_to_weights
+from functions.utils.utils import vector_to_weights
 
 class SNNProblem_CE:
     def __init__(

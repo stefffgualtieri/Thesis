@@ -4,7 +4,7 @@ import torch.nn as nn
 from functions.load_dataset import load_dataset
 from models.spike_nn import SpikeNeuralNetwork
 from functions.utils import times_to_trains, first_spike_times
-from functions.optimizers.utils import times_to_trains
+from functions.utils.utils import times_to_trains
 from functions.temporal_fitness import temporal_fitness_function
 
 #-------------------------------------------------------------------------------------
