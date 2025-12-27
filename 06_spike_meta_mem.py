@@ -2,9 +2,6 @@ import torch
 import torch.nn as nn
 import pygmo as pg
 import numpy as np
-import pandas as pd
-import json
-from pathlib import Path
 
 from functions.utils.utils import vector_to_weights
 from sklearn.model_selection import train_test_split
@@ -37,15 +34,15 @@ y_test_tensor = torch.tensor(y_test, dtype=torch.long)
 # Parameters
 T = 20
 input_dim = X_train.shape[1]
-hidden_dim = 32
+hidden_dim = 64
 num_classes = int(torch.unique(y_train_tensor).numel())
 
 beta = 1.0
 threshold = 0.5
 bias = False
 ce = nn.CrossEntropyLoss()
-gen = 100
-pop = 50
+gen = 150
+pop = 20
 
 X_train_tensor = to_static_seq(X_train_tensor, T)
 X_test_tensor = to_static_seq(X_test_tensor, T)
@@ -90,21 +87,6 @@ algo = pg.algorithm(pg.pso(
 algo.set_verbosity(1)
 pop = pg.population(prob, size=pop, seed=42)
 pop = algo.evolve(pop)
-#-------------------------------------------
-# log = algo.extract(pg.pso).get_log()
-# df = pd.DataFrame(log, columns=[
-#     "Gen",
-#     "fevals",
-#     "gbest",
-#     "mean_vel",
-#     "mean_lbest",
-#     "avg_dist"
-# ])
-
-# dir= "results/pso"
-# Path(dir).mkdir(parents=True, exist_ok=True)
-
-# df.to_csv(f"{dir}/pso_iris_memmean_log.csv", index=False)
 
 
 
@@ -129,23 +111,5 @@ with torch.no_grad():
     pred_te = logits_te.argmax(dim=1)
     acc_te = (pred_te == y_test_tensor).float().mean().item()
     loss_te = ce(logits_te, y_test_tensor).item()
-
-    sr_mean = spike_rate_mean(spk_te)
-    sr_cls = spike_rate_per_class(spk_te).cpu().tolist()
-    spikes_per_sample = spike_count_per_sample(spk_te)
-print(f"Test loss: {loss_te:.4f} | Test acc: {acc_te:.4f}")
-
-# summary = {
-#     "algorithm": "PSO",
-#     "dataset": "iris",
-
-#     "train_loss": float(loss_tr),
-#     "train_acc": float(acc_tr),
-#     "test_loss":  float(loss_te),
-#     "test_acc":   float(acc_te),
-#     "spike_rate_mean_test": float(sr_mean),
-#     "spike_rate_per_class_test": sr_cls,
-#     "spike_per_sample_test": spikes_per_sample,
-# }
-# with open(f"{dir}/pso_iris_summary.json", "w") as f:
-#     json.dump(summary, f, indent=2)
+    
+    print(f"Test loss: {loss_te:.4f} | Test acc: {acc_te:.4f}")
