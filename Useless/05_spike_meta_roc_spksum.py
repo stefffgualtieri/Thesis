@@ -3,14 +3,10 @@ import numpy as np
 import pygmo as pg
 
 from functions.SNNProblem_CE import SNNProblem_CE
-
 from models.spike_nn import SpikeNeuralNetwork
-from functions.temporal_rank_order_encoding import temporal_rank_order_encode
-from sklearn.datasets import load_iris, load_wine, load_breast_cancer
-from functions.times_to_trains import times_to_trains
-from functions.utils.utils import get_linear_layers, dim_from_layers
 
-from functions.utils.utils import vector_to_weights
+from sklearn.datasets import load_iris, load_wine, load_breast_cancer
+from functions.utils.utils import vector_to_weights, get_linear_layers, dim_from_layers, temporal_rank_order_encode, times_to_trains
 
 from sklearn.model_selection import train_test_split 
 

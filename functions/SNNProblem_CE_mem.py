@@ -47,7 +47,7 @@ class SNNProblem_CE_mem:
 
         self.model.eval()
         with torch.no_grad():
-            spk, mem = self.model(self.X)          # [T,B,C]
+            _, mem = self.model(self.X)          # [T,B,C]
             logits = mem.mean(dim=0)              # [B,C]
             loss = self.ce(logits, self.y)       # CE loss
             

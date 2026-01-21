@@ -27,18 +27,19 @@ X_test_tensor = torch.tensor(X_test, dtype=torch.float32)
 y_test_tensor = torch.tensor(y_test, dtype=torch.long)
 
 #-------------------------------------------------------------------------------------
-#Inizialize the model
+# Inizialize the model
 #-------------------------------------------------------------------------------------
 
 input_dim = X_train_tensor.size(dim=1)
 hidden_dim = 50
 output_dim = int(torch.unique(y_train_tensor).numel())
-
+bias = True
 
 model = NeuralNetwork(
     input_dim=input_dim,
     hidden_dim=hidden_dim,
-    output_dim=output_dim
+    output_dim=output_dim,
+    bias=True
 )
 
 lr = 0.01  #learning_rate
@@ -73,8 +74,6 @@ for epoch in range(epochs):
     #zero the gradients to avoid accomulation
     optimizer.zero_grad()
 
-# Print train loss and accuracy:
-print(f"")
 # Showing the graph
 plt.figure(figsize=(8,4))
 plt.plot(train_loss_arr, label="Train Loss")
@@ -88,11 +87,10 @@ plt.tight_layout()
 plt.show()
 
 #-------------------------------------------------------------------------------------
-# Evaluation
+# Final evaluation
 #-------------------------------------------------------------------------------------
 model.eval()
 with torch.no_grad():
-
     # Forward
     test_logits = model(X_test_tensor)
     test_loss = loss_fn(test_logits, y_test_tensor).item()
@@ -102,5 +100,6 @@ with torch.no_grad():
     test_correct = (test_pred == y_test_tensor).sum().item()
     test_acc = test_correct/len(y_test_tensor)
 
+print(f"Evaluation on the test set:")
 print(f"Test Loss: {test_loss}")
 print(f"Test Acc: {test_acc}")

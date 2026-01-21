@@ -1,6 +1,6 @@
 import torch
 import torch.nn as nn
-
+import numpy as np
 
 #Copy the values in w_flat (weights + bias) in the model
 @torch.no_grad()
@@ -52,12 +52,12 @@ def dim_from_layers(layers):
             total += l.bias.numel()
     return total
 
-# Static Training
-def to_static_seq(x_batch, T):
-    return x_batch.unsqueeze(0).expand(T, -1, -1)/10
+# Input: [B, D], Output: [T, B, D]
+def to_static_seq(x_batch, T, scale=0.1):
+    return x_batch.unsqueeze(0).expand(T, -1, -1) * scale
 
 
-def times_to_trains(X_times, T=257):
+def times_to_trains_alt(X_times, T=257):
     '''
     - X_times: [B, F] with values between [0, T - 1]
     - S: [T, B, F]
@@ -86,3 +86,43 @@ def first_spike_times(spk_TBC: torch.Tensor) -> torch.Tensor:
     times = torch.where(mask, t_idx, torch.full_like(t_idx, T))
     first = times.min(dim=0).values             # [B,C]; se no-spike → T
     return first
+
+
+def temporal_rank_order_encode(X, x_min, x_max, T, eps =1e-8):
+    """
+    - X: data -> [N, F]
+    - x_min, x_max: min and max per feature -> [F]
+    - T:  time-steps (t in [0, T-1])
+
+    - Returns: spike_times [N, F], integer values [0, T-1]
+                big value -> small t
+    """
+    # Normalization in [0, 1]
+    x_norm = (X - x_min) / (x_max - x_min + eps)   # [N, F]
+
+    # mapping: 1 -> t_min, 0 -> t_max
+    t = (T - 1) * (1.0 - x_norm)                  # [N, F] float
+    t = np.rint(t).astype(np.int64)               # arrotonda a intero
+    t = np.clip(t, 0, T - 1)
+
+    return t
+
+
+def times_to_trains(spike_times, T=256, device="cpu"):
+    """
+    INPUT: numpy array [B, F] with integer values between [0, T-1]
+    OUPUT: torch.Tensor [T, B, F] with binary values (0/1)
+    """
+    t = torch.as_tensor(spike_times, device=device, dtype=torch.long)  # [B, F]
+    B, F = t.shape
+
+    S = torch.zeros(T, B, F, device=device)
+
+    # indici batch/feature
+    b_ix = torch.arange(B, device=device).unsqueeze(1).expand_as(t)   # [B, F]
+    f_ix = torch.arange(F, device=device).unsqueeze(0).expand_as(t)   # [B, F]
+
+    # metti 1 nel time-step corrispondente
+    S[t, b_ix, f_ix] = 1.0
+
+    return S  # [T, B, F]

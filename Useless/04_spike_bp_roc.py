@@ -5,9 +5,7 @@ import torch.nn as nn
 from sklearn.datasets import load_iris, load_wine, load_breast_cancer
 from sklearn.model_selection import train_test_split
 
-from functions.temporal_rank_order_encoding import temporal_rank_order_encode
-from functions.times_to_trains import times_to_trains
-
+from functions.utils.utils import temporal_rank_order_encode, times_to_trains
 from models.spike_nn import SpikeNeuralNetwork
 # ------------------------------------------------------------
 # 0. Parameters
@@ -20,9 +18,10 @@ threshold = 0.1
 hidden_dim = 32
 lr = 0.001
 device = "cpu"
+bias = True
 
 # ------------------------------------------------------------
-# 1. Carica Iris e fai train/test split
+# 1. Preprocessing
 # ------------------------------------------------------------
 iris = load_iris()
 X = iris.data.astype(np.float32)  # [150, 4]
@@ -37,7 +36,7 @@ X_train, X_test, y_train, y_test = train_test_split(
 )
 
 # ------------------------------------------------------------
-# 2. Computing spiking times
+# 2. Computing spiking times and spike trains
 # ------------------------------------------------------------
 x_min = X_train.min(axis=0) # [F]
 x_max = X_train.max(axis=0) # [F]
@@ -45,10 +44,8 @@ x_max = X_train.max(axis=0) # [F]
 train_times = temporal_rank_order_encode(X_train, x_min, x_max, T)  # [N_tr, F]
 test_times  = temporal_rank_order_encode(X_test,  x_min, x_max, T)  # [N_te, F]
 
-# ------------------------------------------------------------
-# 3. From spike times to spike trains: [T, B, F]
-# ------------------------------------------------------------
 
+# From spike times to spike trains: [T, B, F]
 S_train = times_to_trains(train_times, T=T, device=device)  # [T, N_tr, F]
 S_test  = times_to_trains(test_times,  T=T, device=device)  # [T, N_te, F]
 
@@ -59,7 +56,7 @@ y_train_tensor = torch.as_tensor(y_train, device=device, dtype=torch.long)
 y_test_tensor  = torch.as_tensor(y_test,  device=device, dtype=torch.long)
 
 # ------------------------------------------------------------
-# 4.1 Setup for Training
+# 3.1 Setup for Training
 # ------------------------------------------------------------
 
 _, N, F = S_train_tensor.shape
@@ -71,6 +68,7 @@ net = SpikeNeuralNetwork(
     output_dim=num_classes,
     beta=beta,
     threshold=threshold,
+    bias = bias
 ).to(device)
 
 ce = nn.CrossEntropyLoss()
@@ -84,7 +82,6 @@ num_epochs = 200
 
 for epoch in range(1, num_epochs + 1):
     net.train()
-    
     # Forward
     spk_tr, _ = net(S_train_tensor)  #[T, N, C]
     logits_tr = spk_tr.sum(dim=0)   #[N, C]

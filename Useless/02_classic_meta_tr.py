@@ -7,7 +7,6 @@ from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
 
 from functions.optimizers.hiking_opt import hiking_optimization
-import time
 
 #-------------------------------------------------------------------------------------
 # Load the dataset and normalize it
@@ -45,7 +44,6 @@ model = NeuralNetwork(
 # Main Training
 #-------------------------------------------------------------------------------------
 
-start_time = time.time()
 best_w, best_iteration = hiking_optimization(
     obj_fun=loss_fn,
     X_train=X_train_tensor,
@@ -56,27 +54,6 @@ best_w, best_iteration = hiking_optimization(
     pop_size=200,
     max_iter=250
 )
-
-total_time = time.time() - start_time
-print(f"The training took {total_time:.3f} seconds")
-
-#-------------------------------------------------------------------------------------
-# Copy the best weights obtained in the model 
-#-------------------------------------------------------------------------------------
-
-# linear_layers = [m for m in model.modules() if isinstance(m, nn.Linear)]
-# idx = 0
-# with torch.no_grad():
-#     for lin in linear_layers:
-#         #Weights
-#         number_weights = lin.weight.numel()
-#         lin.weight.copy_(best_w[idx:idx + number_weights].view_as(lin.weight))
-#         idx += number_weights
-#         #Bias
-#         if lin.bias is not None:
-#             number_bias = lin.bias.numel()
-#             lin.bias.copy_(best_w[idx: idx + number_bias].view_as(lin.bias))
-#             idx += number_bias
 
 #-------------------------------------------------------------------------------------
 # Evaluation

@@ -53,35 +53,30 @@ ce = nn.CrossEntropyLoss()
 opt = torch.optim.Adam(model_snn.parameters(), lr=lr)
 
 # Prepare the dataset
-x_tr = to_static_seq(X_train_tensor, T)
-x_te = to_static_seq(X_test_tensor, T)
+scale = 0.1
+x_tr = to_static_seq(X_train_tensor, T, scale)
+x_te = to_static_seq(X_test_tensor, T, scale)
 
 #-------------------------------------------------------------------------------------
 # Training Loop
 #-------------------------------------------------------------------------------------
 model_snn.train()
 for epoch in range(epochs):
-    # Shuffle the training dataset
-    # perm = torch.randperm(X_train_tensor.size(0))
-    # x_tr = X_train_tensor[perm]
-    # y_tr = y_train_tensor[perm]
-
     # Forward
     spk_tr, _ = model_snn(x_tr)
     logits_tr = spk_tr.sum(dim=0)
     loss_tr = ce(logits_tr, y_train_tensor)
 
     # Backward
-    opt.zero_grad()
     loss_tr.backward()
     opt.step()
-
-    with torch.no_grad():
-        pred_tr = logits_tr.argmax(dim=1)
-        acc_tr = (pred_tr == y_train_tensor).float().mean().item()
+    opt.zero_grad()
     
     if epoch % 10 == 0 or epoch == 1:
-        print(f"epoch {epoch} | loss {loss_tr.item():.4f} acc_tr {acc_tr:.3f} |")
+        with torch.no_grad():    
+            pred_tr = logits_tr.argmax(dim=1)
+            acc_tr = (pred_tr == y_train_tensor).float().mean().item()
+            print(f"epoch {epoch} | loss {loss_tr.item():.4f} acc_tr {acc_tr:.3f} |")
 
 #-------------------------------------------------------------------------------------
 # Evaluation on test dataset

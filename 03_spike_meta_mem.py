@@ -9,7 +9,6 @@ from sklearn.preprocessing import StandardScaler
 from sklearn.datasets import load_iris, load_wine, load_breast_cancer
 
 from functions.utils.utils import to_static_seq, get_linear_layers, dim_from_layers
-from functions.utils.utils_memmean_metrics import spike_rate_mean, spike_count_per_sample, spike_rate_per_class
 from models.spike_nn import SpikeNeuralNetwork
 from functions.SNNProblem_CE_mem import SNNProblem_CE_mem
 
@@ -62,6 +61,7 @@ net = SpikeNeuralNetwork(
 
 layers = get_linear_layers(net)
 dim = dim_from_layers(layers)
+print(f"Dimension: {dim}")
 lb = [-3.0] * dim
 ub = [3.0] * dim
 
@@ -84,11 +84,9 @@ prob = pg.problem(upd)
 algo = pg.algorithm(pg.pso(
     gen=gen
 ))
-algo.set_verbosity(1)
+algo.set_verbosity(1)   #for visualization
 pop = pg.population(prob, size=pop, seed=42)
 pop = algo.evolve(pop)
-
-
 
 #-------------------------------
 # Evaluation for the best hiker
