@@ -2,7 +2,7 @@ import torch
 import torch.nn as nn
 import numpy as np
 
-#Copy the values in w_flat (weights + bias) in the model
+# Copy the values in w_flat (weights + bias) in the model
 @torch.no_grad()
 def vector_to_weights(w_flat:torch.Tensor, layers):
     i = 0
@@ -40,7 +40,7 @@ def forward_to_spike(model, x, t_sim: int = 256):
 
 # Return a list of the linear layers of a network
 def get_linear_layers(model: nn.Module):
-    return [m for m in model.modules() if isinstance(m, nn.Linear)]
+    return [m for m in model.modules() if isinstance(m, nn.Linear) or isinstance(m, nn.Conv2d)]
 
 
 # Return the number of weights and biases
