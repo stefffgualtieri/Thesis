@@ -13,7 +13,6 @@ Returns:
 - torch.Tensor: scalar, mean temporal error across samples
 '''
 
-
 def temporal_fitness_function(spike_times, target_classes, t_sim=256, tau=20, device="cpu"):    
 
     n_samples, num_classes = spike_times.shape

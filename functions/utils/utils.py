@@ -73,6 +73,7 @@ def times_to_trains_alt(X_times, T=257):
     S[t, b_ix, f_ix] = 1.0
     return S
 
+# Refactoring NEEDED
 def first_spike_times(spk_TBC: torch.Tensor) -> torch.Tensor:
     """
     spk_TBC: [T, B, C] valori 0/1
@@ -88,7 +89,7 @@ def first_spike_times(spk_TBC: torch.Tensor) -> torch.Tensor:
     return first
 
 
-def temporal_rank_order_encode(X, x_min, x_max, T, eps =1e-8):
+def temporal_encoding(X, x_min, x_max, T, eps =1e-8):
     """
     - X: data -> [N, F]
     - x_min, x_max: min and max per feature -> [F]
@@ -101,9 +102,9 @@ def temporal_rank_order_encode(X, x_min, x_max, T, eps =1e-8):
     x_norm = (X - x_min) / (x_max - x_min + eps)   # [N, F]
 
     # mapping: 1 -> t_min, 0 -> t_max
-    t = (T - 1) * (1.0 - x_norm)                  # [N, F] float
-    t = np.rint(t).astype(np.int64)               # arrotonda a intero
-    t = np.clip(t, 0, T - 1)
+    t = (T - 1) * (1.0 - x_norm)        # [N, F] float
+    t = torch.round(t).to(torch.int64)  # integer values
+    t = torch.clamp(t, 0, T - 1)
 
     return t
 
