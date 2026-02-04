@@ -1,7 +1,7 @@
 import torch
 import snntorch as snn
 import torch.nn as nn
-from torch.utils.data import DataLoader
+from torch.utils.data import DataLoader, Subset
 from torchvision import datasets, transforms
 import numpy as np
 import matplotlib.pyplot as plt
@@ -9,41 +9,66 @@ import pygmo as pg
 
 from models.spike_nn import SpikeConvNN
 from functions.utils.utils import dim_from_layers, get_linear_layers
+from functions.new_utils import balanced_indices
 
 from functions.SNNProblem_MNIST import SNNProblem_MNIST
 
 #----------------------------------------------
-# Pre-Processing
+# Config
 #----------------------------------------------
-batch_size = 128
+seed = 42
 dtype = torch.float
 device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
 data_path = "/data/mnist"
 
 # Define the transformation
 transform = transforms.Compose([
-    transforms.Resize((28,28)),
-    transforms.Grayscale(),
     transforms.ToTensor(),
-    transforms.Normalize((0,), (1,))]
-)
+    transforms.Normalize((0.1307,), (0.3081,))
+])
 
 # Download the dataset
 mnist_train = datasets.MNIST(data_path, train=True, download=True, transform=transform)
 mnist_test = datasets.MNIST(data_path, train=False, download=True, transform=transform)
 
-# Create DataLoaders
-train_loader = DataLoader(mnist_train, batch_size=batch_size, shuffle=True, drop_last=True)
-test_loader = DataLoader(mnist_test, batch_size=batch_size, shuffle=True, drop_last=True)
+# -------------------------
+# Build balanced subsets
+# -------------------------
+train_idx = balanced_indices(mnist_train, per_class=40, seed=seed)  # 40*10=400
+test_idx  = balanced_indices(mnist_test,  per_class=10, seed=seed)  # 10*10=100
 
+train_subset = Subset(mnist_train, train_idx)
+test_subset  = Subset(mnist_test,  test_idx)
+
+# -------------------------
+# Convert subsets -> full tensors
+# -------------------------
+def subset_to_tensors(subset, device, dtype=torch.float32):
+    # batch_size = len(subset) => un solo batch con tutto dentro
+    loader = DataLoader(subset, batch_size=len(subset), shuffle=False)
+    X, y = next(iter(loader))
+    return X.to(device=device, dtype=dtype), y.to(device=device, dtype=torch.long)
+
+X_train, y_train = subset_to_tensors(train_subset, device=device, dtype=dtype)
+X_test,  y_test  = subset_to_tensors(test_subset,  device=device, dtype=dtype)
+
+print("X_train:", X_train.shape, X_train.dtype, X_train.device)
+print("y_train:", y_train.shape, y_train.dtype, y_train.device)
+print("X_test :", X_test.shape,  X_test.dtype,  X_test.device)
+print("y_test :", y_test.shape,  y_test.dtype,  y_test.device)
+
+
+#----------------------------------------------
 # Other Data
+#----------------------------------------------
 num_input = 1
 num_output = 10
+
 num_steps = 25
-beta = 0.95
-pop = 30
-gen = 1
-K = 10
+beta = 1.0
+
+pop = 20
+gen = 50
 
 loss = nn.CrossEntropyLoss()
 
@@ -54,7 +79,6 @@ convnet = SpikeConvNN(
     num_steps=num_steps
 )
 
-num_epochs = 100
 layers = get_linear_layers(convnet)
 dim = dim_from_layers(layers)
 print(f"Dimension: {dim}")
@@ -63,13 +87,50 @@ ub = [3.0] * dim
 
 upd = SNNProblem_MNIST(
     model=convnet,
-    train_loader=train_loader,
+    X=X_train,
+    y=y_train,
     layers=layers,
     lb=lb,
     ub=ub,
     ce=loss
 )
+prob = pg.problem(upd)
+algo = pg.algorithm(pg.pso(
+    gen=gen
+))
+algo.set_verbosity(1)
+pop = pg.population(prob, size=pop, seed=42)
+pop = algo.evolve(pop)
 
+print("Done")
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+'''
 # prepara batch_cache iniziale
 it = iter(train_loader)
 batch_list = []
@@ -110,3 +171,4 @@ for i in range(100):
     pop = algo.evolve(pop)
     
     print(f"Gen {i}: best_loss = {pop.champion_f[0]:.4f}")
+'''

@@ -43,8 +43,8 @@ ce = nn.CrossEntropyLoss()
 gen = 150
 pop = 20
 
-X_train_tensor = to_static_seq(X_train_tensor, T)
-X_test_tensor = to_static_seq(X_test_tensor, T)
+# X_train_tensor = to_static_seq(X_train_tensor, T)
+# X_test_tensor = to_static_seq(X_test_tensor, T)
 
 #----------------------------------------------
 # Defining the model and the problem
@@ -74,6 +74,7 @@ upd = SNNProblem_CE_mem(
     ub=ub,
     device=device,
     ce = ce,
+    num_steps=T
 )
 
 #-------------------------------------------
@@ -104,7 +105,7 @@ with torch.no_grad():
     loss_tr = ce(logits_tr, y_train_tensor).item()
     
     # Test
-    spk_te, mem_te = net(X_test_tensor)
+    spk_te, mem_te = net(X_test_tensor, T)
     logits_te = mem_te.mean(dim=0)
     pred_te = logits_te.argmax(dim=1)
     acc_te = (pred_te == y_test_tensor).float().mean().item()

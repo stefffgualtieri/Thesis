@@ -10,9 +10,8 @@ class SpikeNeuralNetwork(nn.Module):
         self.fc2 = nn.Linear(hidden_dim, output_dim, bias=bias)
         self.lif2 = snn.Leaky(beta=beta, threshold=threshold)
 
-    def forward(self, x):
+    def forward(self, x, num_steps):
         # Initialization
-        T, _, _ = x.shape
         mem1 = self.lif1.init_leaky()
         mem2 = self.lif2.init_leaky()
 
@@ -20,8 +19,8 @@ class SpikeNeuralNetwork(nn.Module):
         mem2_rec = []
 
         # Training-loop
-        for step in range(T):
-            cur1 = self.fc1(x[step])
+        for step in range(num_steps):
+            cur1 = self.fc1(x)
             spk1, mem1 = self.lif1(cur1, mem1)
             cur2 = self.fc2(spk1)
             spk2, mem2 = self.lif2(cur2, mem2)
@@ -37,17 +36,17 @@ class SpikeConvNN(nn.Module):
         super().__init__()
         
         # First layer
-        self.conv1 = nn.Conv2d(input_dim, 8, 5, padding="same")
+        self.conv1 = nn.Conv2d(input_dim, 6, 5, padding="same")
         self.lif1 = snn.Leaky(beta=beta, threshold=threshold)
         self.mp1 = nn.MaxPool2d(2)
         
         # Second Layer
-        self.conv2 = nn.Conv2d(8, 24, 5, padding="same")
+        self.conv2 = nn.Conv2d(6, 10, 5, padding="same")
         self.lif2 = snn.Leaky(beta=beta, threshold=threshold)
         self.mp2 = nn.MaxPool2d(2)
         
         # Third Layer
-        self.fc = nn.Linear(24 * 7 * 7, output_dim)
+        self.fc = nn.Linear(10 * 7 * 7, output_dim)
         self.lif3 = snn.Leaky(beta=beta, threshold=threshold)
         
         self.num_steps = num_steps

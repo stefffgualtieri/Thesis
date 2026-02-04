@@ -21,12 +21,12 @@ print("Test  positive rate:", y_test.float().mean().item())
 
 #parameters
 input_dim = X_train.shape[1]
-hidden_dim = 64
+hidden_dim = 32
 output_dim = 2
 bias = False
 
-beta = 1.0
-threshold = 0.5
+beta = 0.9
+threshold = 1.0
 num_steps = 20
 
 gen = 150
@@ -80,6 +80,8 @@ with torch.no_grad():
     pred_tr = logits_tr.argmax(dim=1)
     acc_tr = (pred_tr == y_train).float().mean().item()
     loss_tr = ce(logits_tr, y_train).item()
+    print(logits_tr.abs().max().item(), logits_tr.abs().mean().item())
+
     
     # Test
     spk_te, mem_te = net(X_test, num_steps)
@@ -87,5 +89,10 @@ with torch.no_grad():
     pred_te = logits_te.argmax(dim=1)
     acc_te = (pred_te == y_test).float().mean().item()
     loss_te = ce(logits_te, y_test).item()
+    print(logits_te.abs().max().item(), logits_te.abs().mean().item())
+
     
     print(f"Test loss: {loss_te:.4f} | Test acc: {acc_te:.4f}")
+
+
+#Resul: Test loss: 5.2917 | Test acc: 0.8700

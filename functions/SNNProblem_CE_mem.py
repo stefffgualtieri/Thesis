@@ -12,6 +12,7 @@ class SNNProblem_CE_mem:
         lb,
         ub,
         ce,
+        num_steps,
         device = "cpu"
     ):
         self.model = model
@@ -22,6 +23,7 @@ class SNNProblem_CE_mem:
         self.ub = ub
         self.device = device
         self.ce = ce
+        self.num_steps = num_steps
         self.dim = len(lb)
         
 
@@ -47,8 +49,8 @@ class SNNProblem_CE_mem:
 
         self.model.eval()
         with torch.no_grad():
-            _, mem = self.model(self.X)          # [T,B,C]
+            _, mem = self.model(self.X, self.num_steps)          # [T,B,C]
             logits = mem.mean(dim=0)              # [B,C]
             loss = self.ce(logits, self.y)       # CE loss
             
-        return [float(loss)]
+        return [loss.item()]
