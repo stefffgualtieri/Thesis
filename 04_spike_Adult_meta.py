@@ -27,7 +27,7 @@ bias = False
 
 beta = 0.9
 threshold = 1.0
-num_steps = 20
+num_steps = 1
 
 gen = 150
 pop = 60
@@ -45,8 +45,8 @@ net = SpikeNeuralNetwork(
 layers = get_linear_layers(net)
 dim = dim_from_layers(layers)
 print(dim)
-lb = [-1] * dim
-ub = [1] * dim
+lb = [-3] * dim
+ub = [3] * dim
 ce = nn.CrossEntropyLoss()
 
 upd = SNNProblem_CE_mem(
@@ -62,7 +62,7 @@ upd = SNNProblem_CE_mem(
 )
 
 prob = pg.problem(upd)
-algo = pg.algorithm(pg.pso(
+algo = pg.algorithm(pg.gwo(
     gen=gen
 ))
 algo.set_verbosity(1)
@@ -96,3 +96,5 @@ with torch.no_grad():
 
 
 #Resul: Test loss: 5.2917 | Test acc: 0.8700
+#Result: Test loss: 0.3772 | Test acc: 0.8500
+#Result: Test loss: 0.4707 | Test acc: 0.8400
