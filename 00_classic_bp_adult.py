@@ -1,40 +1,29 @@
 import torch
 from torch import nn
-
 from models.classic_nn import NeuralNetwork
-from sklearn.datasets import load_iris, load_breast_cancer, load_wine, load_diabetes
-from sklearn.model_selection import train_test_split
-from sklearn.preprocessing import StandardScaler
 import matplotlib.pyplot as plt
 
 from functions.metrics import macro_precision_recall_f1, precision_recall_f1_binary
+from functions.load_adult import load_adult
 
 #-------------------------------------------------------------------------------------
-# Prepare and scale the data, then convert into tensor
+# Import dataset
 #-------------------------------------------------------------------------------------
+X_train_tensor, X_test_tensor, y_train_tensor, y_test_tensor = load_adult()
 
-dataset = load_wine()
-X = dataset.data
-y = dataset.target
+# Sanity Check
+# print("Train:", X_train_tensor.shape, y_train_tensor.shape)
+# print("Test :", X_test_tensor.shape, y_test_tensor.shape)
+# print("Train positive rate:", y_train_tensor.float().mean().item())
+# print("Test  positive rate:", y_test_tensor.float().mean().item())
 
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42, stratify=y)
-
-scaler = StandardScaler()
-X_train = scaler.fit_transform(X_train)
-X_test = scaler.transform(X_test)
-
-X_train_tensor = torch.tensor(X_train, dtype=torch.float32)
-y_train_tensor = torch.tensor(y_train, dtype=torch.long)
-X_test_tensor = torch.tensor(X_test, dtype=torch.float32)
-y_test_tensor = torch.tensor(y_test, dtype=torch.long)
 
 #-------------------------------------------------------------------------------------
-# Inizialize the model
+# Prepare the model
 #-------------------------------------------------------------------------------------
-
 input_dim = X_train_tensor.size(dim=1)
 hidden_dim = 32
-output_dim = int(y.max().item() + 1)
+output_dim = int(torch.unique(y_train_tensor).numel())
 bias = True
 
 model = NeuralNetwork(
@@ -77,7 +66,7 @@ for epoch in range(epochs):
     current_loss.backward()
     optimizer.step()
     
-out_dir = "results/wine"
+out_dir = "results/adult"
 
 # Showing the graph
 plt.figure(figsize=(8,4))
@@ -106,7 +95,7 @@ with torch.no_grad():
     test_correct = (test_pred == y_test_tensor).sum().item()
     test_acc = test_correct/len(y_test_tensor)
 
-p, r, f1 = macro_precision_recall_f1(test_pred, y_test_tensor, output_dim)
+p, r, f1 = precision_recall_f1_binary(test_pred, y_test_tensor)
 
 print(f"Evaluation on the test set:")
 print(f"Test Loss: {test_loss}")
