@@ -104,7 +104,7 @@ print(f"Test precision: {p}")
 print(f"Test recall: {r}")
 print(f"Test f1-score: {f1}")
 
-with open(out_dir + "/final_results.txt", "w", encoding="utf-8") as f:
+with open(out_dir + "/adult_classic_bp.txt", "w", encoding="utf-8") as f:
     f.write("Evaluation on the test set\n")
     f.write(f"Test Loss: {test_loss:.5f}\n")
     f.write(f"Test Acc: {test_acc:.5f}\n")
