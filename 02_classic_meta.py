@@ -17,7 +17,7 @@ from functions.metrics import macro_precision_recall_f1, precision_recall_f1_bin
 # Prepare and scale the data, then convert into tensor
 #-------------------------------------------------------------------------------------
 random_state = 42
-dataset = load_wine()
+dataset = load_breast_cancer()
 X = dataset.data
 y = dataset.target
 
@@ -37,7 +37,7 @@ y_test_tensor = torch.tensor(y_test, dtype=torch.long)
 #-------------------------------------------------------------------------------------
 
 input_dim = X_train_tensor.size(dim=1)
-hidden_dim = 16
+hidden_dim = 32
 output_dim = int(y.max().item() + 1)
 bias = True
 
@@ -67,15 +67,16 @@ upd = SNNProblem_CL(
 )
 
 gen = 100
-pop = 100
+pop = 30
 
 #-------------------------------------------------------------------------------------
 # Training
 #-------------------------------------------------------------------------------------
 
 prob = pg.problem(upd)
-algo = pg.algorithm(pg.bee_colony(
-    gen=gen
+algo = pg.algorithm(pg.gaco(
+    gen=gen,
+    ker=30
 ))
 algo.set_verbosity(1)   #for visualization
 pop = pg.population(prob, size=pop, seed=random_state)
@@ -106,8 +107,8 @@ print(f"Test precision: {p}")
 print(f"Test recall: {r}")
 print(f"Test f1-score: {f1}")
 
-out_dir = 'results/wine'
-with open(out_dir + "/wine_classic_bee_colony.txt", "w", encoding="utf-8") as f:
+out_dir = 'results/breast_cancer'
+with open(out_dir + "/breast_classic_gaco.txt", "w", encoding="utf-8") as f:
     f.write("Evaluation on the test set\n")
     f.write(f"Test Loss: {test_loss:.5f}\n")
     f.write(f"Test Acc: {test_acc:.5f}\n")

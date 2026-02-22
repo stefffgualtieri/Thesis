@@ -1,0 +1,6 @@
+Evaluation on the test set
+Test Loss: 0.12324
+Test Acc: 0.95614
+Test Precision: 0.95103
+Test Recall: 0.95536
+Test f1: 0.95319
