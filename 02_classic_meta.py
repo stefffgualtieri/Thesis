@@ -74,9 +74,8 @@ pop = 30
 #-------------------------------------------------------------------------------------
 
 prob = pg.problem(upd)
-algo = pg.algorithm(pg.gaco(
-    gen=gen,
-    ker=30
+algo = pg.algorithm(pg.bee_colony(
+    gen=gen
 ))
 algo.set_verbosity(1)   #for visualization
 pop = pg.population(prob, size=pop, seed=random_state)
@@ -98,7 +97,7 @@ with torch.no_grad():
     test_pred = torch.argmax(test_logits, dim=1)
     test_correct = (test_pred == y_test_tensor).sum().item()
     test_acc = test_correct/len(y_test_tensor)
-    p, r, f1 = macro_precision_recall_f1(test_pred, y_test_tensor, output_dim)
+    p, r, f1 = precision_recall_f1_binary(test_pred, y_test_tensor)
 
 print(f"Evaluation on the test set:")
 print(f"Test Loss: {test_loss}")
@@ -108,7 +107,7 @@ print(f"Test recall: {r}")
 print(f"Test f1-score: {f1}")
 
 out_dir = 'results/breast_cancer'
-with open(out_dir + "/breast_classic_gaco.txt", "w", encoding="utf-8") as f:
+with open(out_dir + "/breast_classic_bee_colony.txt", "w", encoding="utf-8") as f:
     f.write("Evaluation on the test set\n")
     f.write(f"Test Loss: {test_loss:.5f}\n")
     f.write(f"Test Acc: {test_acc:.5f}\n")
