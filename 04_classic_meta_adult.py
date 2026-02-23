@@ -1,19 +1,19 @@
 import torch
 from torch import nn
 from models.classic_nn import NeuralNetwork
-import matplotlib.pyplot as plt
+import pygmo as pg
 
 from functions.metrics import precision_recall_f1_binary
 from functions.load_adult import load_adult
 
-from functions.utils.utils import get_linear_layers, dim_from_layers
-from models.spike_nn import SpikeNeuralNetwork
+from functions.utils.utils import get_linear_layers, dim_from_layers, vector_to_weights
 from functions.SNNProblem_CL import SNNProblem_CL
 
 #-------------------------------------------------------------------------------------
 # Import dataset
 #-------------------------------------------------------------------------------------
 X_train_tensor, X_test_tensor, y_train_tensor, y_test_tensor = load_adult()
+random_state = 42
 
 #-------------------------------------------------------------------------------------
 # Prepare the model
@@ -23,7 +23,7 @@ hidden_dim = 32
 output_dim = int(torch.unique(y_train_tensor).numel())
 bias = True
 
-net = SpikeNeuralNetwork(
+net = NeuralNetwork(
     input_dim=input_dim,
     hidden_dim=hidden_dim,
     output_dim=output_dim,
@@ -49,4 +49,50 @@ upd = SNNProblem_CL(
 )
 
 gen = 100
-pop = 30
+pop = 50
+
+#-------------------------------------------------------------------------------------
+# Training
+#-------------------------------------------------------------------------------------
+
+prob = pg.problem(upd)
+algo = pg.algorithm(pg.pso(
+    gen=gen
+))
+algo.set_verbosity(1)   #for visualization
+pop = pg.population(prob, size=pop, seed=random_state)
+
+pop = algo.evolve(pop)
+
+#-------------------------------
+# Evaluation for the best hiker
+#-------------------------------
+best_w = pop.champion_x
+best_w_t = torch.as_tensor(best_w, dtype=torch.float32, device="cpu")
+vector_to_weights(best_w_t, layers)
+net.eval()
+with torch.no_grad(): 
+    test_logits = net(X_test_tensor)
+    test_loss = loss_fn(test_logits, y_test_tensor).item()
+
+    # Prediction
+    test_pred = torch.argmax(test_logits, dim=1)
+    test_correct = (test_pred == y_test_tensor).sum().item()
+    test_acc = test_correct/len(y_test_tensor)
+    p, r, f1 = precision_recall_f1_binary(test_pred, y_test_tensor)
+
+print(f"Evaluation on the test set:")
+print(f"Test Loss: {test_loss}")
+print(f"Test Acc: {test_acc}")
+print(f"Test precision: {p}")
+print(f"Test recall: {r}")
+print(f"Test f1-score: {f1}")
+
+out_dir = 'results/adult'
+with open(out_dir + "/adult_classic_pso.txt", "w", encoding="utf-8") as f:
+    f.write("Evaluation on the test set\n")
+    f.write(f"Test Loss: {test_loss:.5f}\n")
+    f.write(f"Test Acc: {test_acc:.5f}\n")
+    f.write(f"Test Precision: {p:.5f}\n")
+    f.write(f"Test Recall: {r:.5f}\n")
+    f.write(f"Test f1: {f1:.5f}\n")

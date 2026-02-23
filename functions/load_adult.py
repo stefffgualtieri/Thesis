@@ -39,14 +39,14 @@ def load_adult():
     # -------------------------
     X_train, _, y_train, _ = train_test_split(
         X_train_full, y_train_full,
-        train_size=1000,
+        train_size=4000,
         random_state=42,
         stratify=y_train_full
     )
 
     X_test, _, y_test, _ = train_test_split(
         X_test_full, y_test_full,
-        train_size=200,
+        train_size=800,
         random_state=42,
         stratify=y_test_full
     )
