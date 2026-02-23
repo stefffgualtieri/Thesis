@@ -13,7 +13,7 @@ from functions.metrics import macro_precision_recall_f1, precision_recall_f1_bin
 # Prepare and scale the data, then convert into tensor
 #-------------------------------------------------------------------------------------
 
-dataset = load_wine()
+dataset = load_iris()
 X = dataset.data
 y = dataset.target
 
@@ -33,7 +33,7 @@ y_test_tensor = torch.tensor(y_test, dtype=torch.long)
 #-------------------------------------------------------------------------------------
 
 input_dim = X_train_tensor.size(dim=1)
-hidden_dim = 32
+hidden_dim = 16
 output_dim = int(y.max().item() + 1)
 bias = True
 
@@ -77,7 +77,7 @@ for epoch in range(epochs):
     current_loss.backward()
     optimizer.step()
     
-out_dir = "results/wine"
+out_dir = "results/iris"
 
 # Showing the graph
 plt.figure(figsize=(8,4))
