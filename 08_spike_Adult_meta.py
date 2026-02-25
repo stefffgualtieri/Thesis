@@ -4,7 +4,7 @@ import torch.nn as nn
 import pygmo as pg
 
 from models.spike_nn import SpikeNeuralNetwork
-from functions.SNNProblem_CE_mem import SNNProblem_CE_mem
+from functions.SNNProblem_snn import SNNProblem_CE_mem
 
 from functions.utils.utils import dim_from_layers, get_linear_layers, vector_to_weights
 
@@ -27,7 +27,7 @@ bias = False
 
 beta = 0.9
 threshold = 1.0
-num_steps = 1
+num_steps = 20
 
 gen = 150
 pop = 60

@@ -2,7 +2,7 @@ import torch
 
 from functions.utils.utils import vector_to_weights
 
-class SNNProblem_CE_mem:
+class SNNProblem_snn:
     def __init__(
         self,
         model,
@@ -49,7 +49,7 @@ class SNNProblem_CE_mem:
 
         self.model.eval()
         with torch.no_grad():
-            _, mem = self.model(self.X, self.num_steps)          # [T,B,C]
+            spk, mem, _ = self.model(self.X, self.num_steps)          # [T,B,C]
             logits = mem.mean(dim=0)              # [B,C]
             loss = self.ce(logits, self.y)       # CE loss
             

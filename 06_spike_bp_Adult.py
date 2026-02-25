@@ -5,12 +5,12 @@ import pygmo as pg
 import matplotlib.pyplot as plt
 
 from functions.metrics import precision_recall_f1_binary
-from functions.load_adult import load_adult
+from functions.load_adult_balanced import load_adult_balanced
 
 #-------------------------------------------------------------------------------------
 # Import dataset
 #-------------------------------------------------------------------------------------
-X_train_tensor, X_test_tensor, y_train_tensor, y_test_tensor = load_adult()
+X_train_tensor, X_test_tensor, y_train_tensor, y_test_tensor = load_adult_balanced()
 random_state = 42
 
 #-------------------------------------------------------------------------------------
@@ -112,7 +112,6 @@ with torch.no_grad():
     energy_te = energy_te.item()
 
     print(f"Test:\nLoss: {test_loss:.4f} | Acc: {test_acc:.4f} | ")
-    print(y_pred_te)
     
 p, r, f1 = precision_recall_f1_binary(y_pred_te, y_test_tensor)
 

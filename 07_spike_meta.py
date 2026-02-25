@@ -3,23 +3,27 @@ import torch.nn as nn
 import pygmo as pg
 import numpy as np
 
-from functions.utils.utils import vector_to_weights
+from functions.metrics import precision_recall_f1_binary, macro_precision_recall_f1
+
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
+
 from sklearn.datasets import load_iris, load_wine, load_breast_cancer
 
-from functions.utils.utils import to_static_seq, get_linear_layers, dim_from_layers
+from functions.utils.utils import get_linear_layers, dim_from_layers, vector_to_weights
 from models.spike_nn import SpikeNeuralNetwork
-from functions.SNNProblem_CE_mem import SNNProblem_CE_mem
+from functions.SNNProblem_snn import SNNProblem_snn
 
 #----------------------------------------------
 # Pre-Processing
 #----------------------------------------------
+random_state = 250
+
 iris = load_iris()
 X = iris.data.astype(np.float32)
 y = iris.target.astype(np.int64)
 
-X_train, X_test, y_train, y_test = train_test_split(X, y, stratify=y, test_size=0.2, random_state=42)
+X_train, X_test, y_train, y_test = train_test_split(X, y, stratify=y, test_size=0.2, random_state=random_state)
 
 scaler = StandardScaler()
 X_train = scaler.fit_transform(X_train)
@@ -36,15 +40,14 @@ input_dim = X_train.shape[1]
 hidden_dim = 64
 num_classes = int(torch.unique(y_train_tensor).numel())
 
-beta = 1.0
-threshold = 0.5
+beta = 0.95
+threshold = 1.0
 bias = False
-ce = nn.CrossEntropyLoss()
-gen = 150
-pop = 20
 
-# X_train_tensor = to_static_seq(X_train_tensor, T)
-# X_test_tensor = to_static_seq(X_test_tensor, T)
+ce = nn.CrossEntropyLoss()
+
+gen = 100
+pop = 40
 
 #----------------------------------------------
 # Defining the model and the problem
@@ -65,7 +68,7 @@ print(f"Dimension: {dim}")
 lb = [-3.0] * dim
 ub = [3.0] * dim
 
-upd = SNNProblem_CE_mem(
+upd = SNNProblem_snn(
     model=net,
     X=X_train_tensor, 
     y=y_train_tensor,
@@ -82,11 +85,11 @@ upd = SNNProblem_CE_mem(
 #-------------------------------------------
 prob = pg.problem(upd)
 
-algo = pg.algorithm(pg.pso(
+algo = pg.algorithm(pg.gwo(
     gen=gen
 ))
 algo.set_verbosity(1)   #for visualization
-pop = pg.population(prob, size=pop, seed=42)
+pop = pg.population(prob, size=pop, seed=random_state)
 pop = algo.evolve(pop)
 
 #-------------------------------
@@ -95,20 +98,44 @@ pop = algo.evolve(pop)
 best_w = pop.champion_x
 best_w_t = torch.as_tensor(best_w, dtype=torch.float32, device=device)
 vector_to_weights(best_w_t, layers)
+
 net.eval()
 with torch.no_grad():
     # Train
-    spk_tr, mem_tr = net(X_train_tensor)
+    spk_tr, mem_tr, _ = net(X_train_tensor, T)
     logits_tr = mem_tr.mean(dim=0)
     pred_tr = logits_tr.argmax(dim=1)
+    
     acc_tr = (pred_tr == y_train_tensor).float().mean().item()
     loss_tr = ce(logits_tr, y_train_tensor).item()
     
     # Test
-    spk_te, mem_te = net(X_test_tensor, T)
+    spk_te, mem_te, energy_te = net(X_test_tensor, T)
     logits_te = mem_te.mean(dim=0)
-    pred_te = logits_te.argmax(dim=1)
-    acc_te = (pred_te == y_test_tensor).float().mean().item()
-    loss_te = ce(logits_te, y_test_tensor).item()
+    test_pred = logits_te.argmax(dim=1)
     
-    print(f"Test loss: {loss_te:.4f} | Test acc: {acc_te:.4f}")
+    test_acc = (test_pred == y_test_tensor).float().mean().item()
+    test_loss = ce(logits_te, y_test_tensor).item()
+    
+    p, r, f1 = macro_precision_recall_f1(test_pred, y_test_tensor, num_classes)
+    energy_te = energy_te.item()
+    
+    print(f"Acc Train: {acc_tr} | Acc Test: {test_acc}")
+    
+print(f"Evaluation on the test set:")
+print(f"Test Loss: {test_loss}")
+print(f"Test Acc: {test_acc}")
+print(f"Test precision: {p}")
+print(f"Test recall: {r}")
+print(f"Test f1-score: {f1}")
+print(f"Test Energy per sample: {(energy_te / T):.5f}")
+
+out_dir = 'results/iris/snn/gwo'
+with open(out_dir + "/iris_snn_gwo_5.txt", "w", encoding="utf-8") as f:
+    f.write("Evaluation on the test set\n")
+    f.write(f"Test Loss: {test_loss:.5f}\n")
+    f.write(f"Test Acc: {test_acc:.5f}\n")
+    f.write(f"Test Precision: {p:.5f}\n")
+    f.write(f"Test Recall: {r:.5f}\n")
+    f.write(f"Test f1: {f1:.5f}\n")
+    f.write(f"Test Energy per sample: {(energy_te / T):.5f}")

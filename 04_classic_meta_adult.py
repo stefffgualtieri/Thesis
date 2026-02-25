@@ -72,6 +72,7 @@ best_w_t = torch.as_tensor(best_w, dtype=torch.float32, device="cpu")
 vector_to_weights(best_w_t, layers)
 net.eval()
 with torch.no_grad(): 
+    
     test_logits = net(X_test_tensor)
     test_loss = loss_fn(test_logits, y_test_tensor).item()
 
