@@ -34,8 +34,9 @@ def load_adult():
     # Transform
     X_train_full = preprocessor.fit_transform(X_train_full)
     X_test_full  = preprocessor.transform(X_test_full)
+    
     # -------------------------
-    # Select small subsets (1000 train, 200 test)
+    # Select small subsets (4000 train, 500 test)
     # -------------------------
     X_train, _, y_train, _ = train_test_split(
         X_train_full, y_train_full,

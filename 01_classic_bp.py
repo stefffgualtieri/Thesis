@@ -77,7 +77,7 @@ for epoch in range(epochs):
     current_loss.backward()
     optimizer.step()
     
-out_dir = "results/iris"
+out_dir = "results/iris/classic"
 
 # Showing the graph
 plt.figure(figsize=(8,4))

@@ -1,46 +1,29 @@
 import torch
 from torch import nn
+from models.spike_nn import SpikeNeuralNetwork
+import pygmo as pg
 import matplotlib.pyplot as plt
 
-from models.spike_nn import SpikeNeuralNetwork
-
-from sklearn.datasets import load_iris, load_wine, load_breast_cancer
-from sklearn.model_selection import train_test_split
-
-from sklearn.preprocessing import StandardScaler
-from functions.metrics import macro_precision_recall_f1, precision_recall_f1_binary
+from functions.metrics import precision_recall_f1_binary
+from functions.load_adult import load_adult
 
 #-------------------------------------------------------------------------------------
-# Pre Processing
+# Import dataset
 #-------------------------------------------------------------------------------------
+X_train_tensor, X_test_tensor, y_train_tensor, y_test_tensor = load_adult()
 random_state = 42
-
-dataset = load_breast_cancer()
-X = dataset.data
-y = dataset.target
-
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, stratify=y, random_state=random_state)
-
-scaler = StandardScaler()
-X_train = scaler.fit_transform(X_train)
-X_test = scaler.transform(X_test)
-
-X_train_tensor = torch.from_numpy(X_train).float()
-X_test_tensor = torch.from_numpy(X_test).float()
-y_train_tensor = torch.from_numpy(y_train).long()
-y_test_tensor = torch.from_numpy(y_test).long()
 
 #-------------------------------------------------------------------------------------
 # Defining the networks
 #-------------------------------------------------------------------------------------
 beta = 0.95
 T = 20
-epochs = 70
+epochs = 150
 bias = False
 lr = 0.1
 threshold = 1.0
 
-input_dim = X_train.shape[1]
+input_dim = X_train_tensor.shape[1]
 hidden_dim = 32
 output_dim = int(torch.unique(y_train_tensor).numel())
 
@@ -55,7 +38,7 @@ model_snn = SpikeNeuralNetwork(
 ce = nn.CrossEntropyLoss()
 opt = torch.optim.Adam(model_snn.parameters(), lr=lr)
 
-out_dir = "results/breast_cancer/snn"
+out_dir = "results/adult/snn"
 #-------------------------------------------------------------------------------------
 # Training Loop
 #-------------------------------------------------------------------------------------
@@ -98,19 +81,21 @@ plt.title("Training Loss & Accuracy")
 plt.legend()
 plt.grid(True)
 plt.tight_layout()
-plt.savefig(out_dir + "/breast_classic_bp_train_curves.png", dpi=200)
+plt.savefig(out_dir + "/adult_snn_bp_train_curves.png", dpi=200)
 plt.show()
 
 plt.figure(figsize=(8,4))
 plt.plot(train_energy_arr, label="Train Energy")
 plt.xlabel("Epoch")
 plt.ylabel("Value")
-plt.title("TRaining Energy")
+plt.title("Training Energy")
 plt.legend()
 plt.grid(True)
 plt.tight_layout()
-plt.savefig(out_dir + "/breast_classic_bp_energy.png", dpi=200)
+plt.savefig(out_dir + "/adult_snn_bp_energy.png", dpi=200)
 plt.show()
+
+
 #-------------------------------------------------------------------------------------
 # Evaluation on test dataset
 #-------------------------------------------------------------------------------------
@@ -118,13 +103,18 @@ with torch.no_grad():
     model_snn.eval()
     spk_te, _, energy_te = model_snn(X_test_tensor, T)
     logits_te = spk_te.sum(dim=0)
+    y_pred_te = logits_te.argmax(dim=1)
+
     test_loss = ce(logits_te, y_test_tensor).item()
-    test_acc = (logits_te.argmax(dim=1) == y_test_tensor).float().mean().item()
+
+    test_acc = (y_pred_te == y_test_tensor).float().mean().item()
+
     energy_te = energy_te.item()
 
     print(f"Test:\nLoss: {test_loss:.4f} | Acc: {test_acc:.4f} | ")
+    print(y_pred_te)
     
-p, r, f1 = precision_recall_f1_binary(logits_te.argmax(dim=1), y_test_tensor)
+p, r, f1 = precision_recall_f1_binary(y_pred_te, y_test_tensor)
 
 print(f"Evaluation on the test set:")
 print(f"Test Loss: {test_loss}")
@@ -134,11 +124,11 @@ print(f"Test recall: {r}")
 print(f"Test f1-score: {f1}")
 print(f"Test Energy: {energy_te:.4f}")
 
-with open(out_dir + "/breast_snn_bp.txt", "w", encoding="utf-8") as f:
+with open(out_dir + "/adult_snn_bp.txt", "w", encoding="utf-8") as f:
     f.write("Evaluation on the test set\n")
     f.write(f"Test Loss: {test_loss:.5f}\n")
     f.write(f"Test Acc: {test_acc:.5f}\n")
     f.write(f"Test Precision: {p:.5f}\n")
     f.write(f"Test Recall: {r:.5f}\n")
     f.write(f"Test f1: {f1:.5f}\n")
-    f.write(f"Test Energy: {energy_te:.5f}")
+    f.write(f"Test Energy per sample: {(energy_te / T):.5f}")

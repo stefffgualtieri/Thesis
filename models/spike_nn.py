@@ -17,19 +17,25 @@ class SpikeNeuralNetwork(nn.Module):
 
         spk2_rec = []
         mem2_rec = []
+        energy = 0.0    #spike counter
 
         # Training-loop
         for step in range(num_steps):
             cur1 = self.fc1(x)
             spk1, mem1 = self.lif1(cur1, mem1)
+
             cur2 = self.fc2(spk1)
             spk2, mem2 = self.lif2(cur2, mem2)
+
+            # Energy
+            energy += spk1.sum()
+            energy += spk2.sum()
 
             # Store in lists
             spk2_rec.append(spk2)
             mem2_rec.append(mem2)
 
-        return torch.stack(spk2_rec), torch.stack(mem2_rec)
+        return torch.stack(spk2_rec), torch.stack(mem2_rec), energy
     
 class SpikeConvNN(nn.Module):
     def __init__(self, beta=0.95, threshold=1.0, input_dim=1, output_dim=10, num_steps=25): 
