@@ -19,7 +19,7 @@ from functions.SNNProblem_snn import SNNProblem_snn
 #----------------------------------------------
 random_state = 42
 
-iris = load_iris()
+iris = load_wine()
 X = iris.data.astype(np.float32)
 y = iris.target.astype(np.int64)
 
@@ -46,8 +46,8 @@ bias = False
 
 ce = nn.CrossEntropyLoss()
 
-gen = 40
-pop = 30
+gen = 50
+pop = 20
 
 #----------------------------------------------
 # Defining the model and the problem
@@ -131,9 +131,9 @@ print(f"Test recall: {r}")
 print(f"Test f1-score: {f1}")
 print(f"Test Energy per sample: {(energy_te / T):.5f}")
 
-out_dir = 'results/iris/snn/gaco'
+out_dir = 'results/wine/snn/gaco'
 
-with open(out_dir + "/iris_snn_gaco_2.txt", "w", encoding="utf-8") as f:
+with open(out_dir + "/iris_snn_gaco_1.txt", "w", encoding="utf-8") as f:
     f.write("Evaluation on the test set\n")
     f.write(f"Test Loss: {test_loss:.5f}\n")
     f.write(f"Test Acc: {test_acc:.5f}\n")
