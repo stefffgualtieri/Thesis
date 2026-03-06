@@ -17,7 +17,7 @@ from functions.SNNProblem_snn import SNNProblem_snn
 #----------------------------------------------
 # Pre-Processing
 #----------------------------------------------
-random_state = 250
+random_state = 42
 
 iris = load_iris()
 X = iris.data.astype(np.float32)
@@ -37,17 +37,17 @@ y_test_tensor = torch.tensor(y_test, dtype=torch.long)
 # Parameters
 T = 20
 input_dim = X_train.shape[1]
-hidden_dim = 64
+hidden_dim = 32
 num_classes = int(torch.unique(y_train_tensor).numel())
 
 beta = 0.95
-threshold = 1.0
+threshold = 0.5
 bias = False
 
 ce = nn.CrossEntropyLoss()
 
-gen = 100
-pop = 40
+gen = 40
+pop = 30
 
 #----------------------------------------------
 # Defining the model and the problem
@@ -65,8 +65,8 @@ net = SpikeNeuralNetwork(
 layers = get_linear_layers(net)
 dim = dim_from_layers(layers)
 print(f"Dimension: {dim}")
-lb = [-3.0] * dim
-ub = [3.0] * dim
+lb = [-2.0] * dim
+ub = [2.0] * dim
 
 upd = SNNProblem_snn(
     model=net,
@@ -85,8 +85,9 @@ upd = SNNProblem_snn(
 #-------------------------------------------
 prob = pg.problem(upd)
 
-algo = pg.algorithm(pg.gwo(
-    gen=gen
+algo = pg.algorithm(pg.gaco(
+    gen=gen,
+    ker=pop
 ))
 algo.set_verbosity(1)   #for visualization
 pop = pg.population(prob, size=pop, seed=random_state)
@@ -130,8 +131,9 @@ print(f"Test recall: {r}")
 print(f"Test f1-score: {f1}")
 print(f"Test Energy per sample: {(energy_te / T):.5f}")
 
-out_dir = 'results/iris/snn/gwo'
-with open(out_dir + "/iris_snn_gwo_5.txt", "w", encoding="utf-8") as f:
+out_dir = 'results/iris/snn/gaco'
+
+with open(out_dir + "/iris_snn_gaco_2.txt", "w", encoding="utf-8") as f:
     f.write("Evaluation on the test set\n")
     f.write(f"Test Loss: {test_loss:.5f}\n")
     f.write(f"Test Acc: {test_acc:.5f}\n")
