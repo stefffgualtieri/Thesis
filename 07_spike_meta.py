@@ -41,13 +41,13 @@ hidden_dim = 32
 num_classes = int(torch.unique(y_train_tensor).numel())
 
 beta = 0.95
-threshold = 0.5
+threshold = 1.0
 bias = False
 
 ce = nn.CrossEntropyLoss()
 
-gen = 50
-pop = 20
+gen = 30
+pop = 30
 
 #----------------------------------------------
 # Defining the model and the problem
@@ -65,8 +65,9 @@ net = SpikeNeuralNetwork(
 layers = get_linear_layers(net)
 dim = dim_from_layers(layers)
 print(f"Dimension: {dim}")
-lb = [-2.0] * dim
-ub = [2.0] * dim
+lb = [-1.0] * dim
+ub = [1.0] * dim
+
 
 upd = SNNProblem_snn(
     model=net,
@@ -131,9 +132,9 @@ print(f"Test recall: {r}")
 print(f"Test f1-score: {f1}")
 print(f"Test Energy per sample: {(energy_te / T):.5f}")
 
-out_dir = 'results/wine/snn/gaco'
+out_dir = 'results/breast_cancer/snn/gaco'
 
-with open(out_dir + "/iris_snn_gaco_1.txt", "w", encoding="utf-8") as f:
+with open(out_dir + "/breast_snn_gaco_5.txt", "w", encoding="utf-8") as f:
     f.write("Evaluation on the test set\n")
     f.write(f"Test Loss: {test_loss:.5f}\n")
     f.write(f"Test Acc: {test_acc:.5f}\n")
