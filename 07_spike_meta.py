@@ -46,8 +46,8 @@ bias = False
 
 ce = nn.CrossEntropyLoss()
 
-gen = 30
-pop = 30
+gen = 100
+pop = 20
 
 #----------------------------------------------
 # Defining the model and the problem
@@ -86,9 +86,9 @@ upd = SNNProblem_snn(
 #-------------------------------------------
 prob = pg.problem(upd)
 
-algo = pg.algorithm(pg.gaco(
+algo = pg.algorithm(pg.bee_colony(
     gen=gen,
-    ker=pop
+    limit=20
 ))
 algo.set_verbosity(1)   #for visualization
 pop = pg.population(prob, size=pop, seed=random_state)
@@ -132,9 +132,9 @@ print(f"Test recall: {r}")
 print(f"Test f1-score: {f1}")
 print(f"Test Energy per sample: {(energy_te / T):.5f}")
 
-out_dir = 'results/breast_cancer/snn/gaco'
+out_dir = 'results/wine/snn/bee'
 
-with open(out_dir + "/breast_snn_gaco_5.txt", "w", encoding="utf-8") as f:
+with open(out_dir + "/wine_snn_bee_4.txt", "w", encoding="utf-8") as f:
     f.write("Evaluation on the test set\n")
     f.write(f"Test Loss: {test_loss:.5f}\n")
     f.write(f"Test Acc: {test_acc:.5f}\n")
