@@ -38,7 +38,7 @@ class SpikeNeuralNetwork(nn.Module):
         return torch.stack(spk2_rec), torch.stack(mem2_rec), energy
     
 class SpikeConvNN(nn.Module):
-    def __init__(self, beta=0.95, threshold=1.0, input_dim=1, output_dim=10, num_steps=25): 
+    def __init__(self, beta=0.9, threshold=1.0, input_dim=1, output_dim=10, num_steps=20): 
         super().__init__()
         
         # First layer
@@ -52,12 +52,12 @@ class SpikeConvNN(nn.Module):
         self.mp2 = nn.MaxPool2d(2)
         
         # Third Layer
-        self.fc = nn.Linear(10 * 7 * 7, output_dim)
+        self.fc = nn.Linear(10 * 2 * 2, output_dim)
         self.lif3 = snn.Leaky(beta=beta, threshold=threshold)
         
         self.num_steps = num_steps
         
-    def forward(self, x):
+    def forward(self, x, num_steps):
         
         mem1 = self.lif1.init_leaky()
         mem2 = self.lif2.init_leaky()
@@ -68,7 +68,8 @@ class SpikeConvNN(nn.Module):
         mem3_rec = []
         
         # Loop
-        for step in range(self.num_steps):
+        for step in range(num_steps):
+
             cur1 = self.conv1(x)
             spk1, mem1 = self.lif1(self.mp1(cur1), mem1)
             
@@ -82,5 +83,5 @@ class SpikeConvNN(nn.Module):
             spk3_rec.append(spk3)
             mem3_rec.append(mem3)
 
-        return torch.stack(spk3_rec), torch.stack(mem3_rec)
+        return torch.stack(spk3_rec), torch.stack(mem3_rec), 0
     

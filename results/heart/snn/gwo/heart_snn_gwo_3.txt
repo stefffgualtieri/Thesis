@@ -1,0 +1,7 @@
+Evaluation on the test set
+Test Loss: 0.48815
+Test Acc: 0.80000
+Test Precision: 0.80769
+Test Recall: 0.75000
+Test f1: 0.77778
+Test Energy per sample: 227.50000
