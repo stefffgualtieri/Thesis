@@ -19,7 +19,7 @@ from functions.SNNProblem_snn import SNNProblem_snn
 #----------------------------------------------
 random_state = 42
 
-iris = load_wine()
+iris = load_iris()
 X = iris.data.astype(np.float32)
 y = iris.target.astype(np.int64)
 
@@ -86,9 +86,8 @@ upd = SNNProblem_snn(
 #-------------------------------------------
 prob = pg.problem(upd)
 
-algo = pg.algorithm(pg.bee_colony(
-    gen=gen,
-    limit=20
+algo = pg.algorithm(pg.sga(
+    gen=gen
 ))
 algo.set_verbosity(1)   #for visualization
 pop = pg.population(prob, size=pop, seed=random_state)
@@ -132,9 +131,9 @@ print(f"Test recall: {r}")
 print(f"Test f1-score: {f1}")
 print(f"Test Energy per sample: {(energy_te / T):.5f}")
 
-out_dir = 'results/wine/snn/bee'
+out_dir = 'results/iris/snn/sga'
 
-with open(out_dir + "/wine_snn_bee_4.txt", "w", encoding="utf-8") as f:
+with open(out_dir + "/iris_snn_sga_3.txt", "w", encoding="utf-8") as f:
     f.write("Evaluation on the test set\n")
     f.write(f"Test Loss: {test_loss:.5f}\n")
     f.write(f"Test Acc: {test_acc:.5f}\n")

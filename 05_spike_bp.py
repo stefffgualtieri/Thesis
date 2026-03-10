@@ -15,7 +15,7 @@ from functions.metrics import macro_precision_recall_f1, precision_recall_f1_bin
 #-------------------------------------------------------------------------------------
 random_state = 42
 
-dataset = load_breast_cancer()
+dataset = load_iris()
 X = dataset.data
 y = dataset.target
 
@@ -35,13 +35,13 @@ y_test_tensor = torch.from_numpy(y_test).long()
 #-------------------------------------------------------------------------------------
 beta = 0.95
 T = 20
-epochs = 70
+epochs = 100
 bias = False
 lr = 0.1
 threshold = 1.0
 
 input_dim = X_train.shape[1]
-hidden_dim = 32
+hidden_dim = 16
 output_dim = int(torch.unique(y_train_tensor).numel())
 
 model_snn = SpikeNeuralNetwork(
@@ -55,7 +55,7 @@ model_snn = SpikeNeuralNetwork(
 ce = nn.CrossEntropyLoss()
 opt = torch.optim.Adam(model_snn.parameters(), lr=lr)
 
-out_dir = "results/breast_cancer/snn"
+out_dir = "results/iris/snn"
 #-------------------------------------------------------------------------------------
 # Training Loop
 #-------------------------------------------------------------------------------------
@@ -98,7 +98,7 @@ plt.title("Training Loss & Accuracy")
 plt.legend()
 plt.grid(True)
 plt.tight_layout()
-plt.savefig(out_dir + "/breast_classic_bp_train_curves.png", dpi=200)
+plt.savefig(out_dir + "/iris_snn_bp_train_curves.png", dpi=200)
 plt.show()
 
 plt.figure(figsize=(8,4))
@@ -109,8 +109,10 @@ plt.title("TRaining Energy")
 plt.legend()
 plt.grid(True)
 plt.tight_layout()
-plt.savefig(out_dir + "/breast_classic_bp_energy.png", dpi=200)
+plt.savefig(out_dir + "/iris_snn_bp_energy.png", dpi=200)
 plt.show()
+
+
 #-------------------------------------------------------------------------------------
 # Evaluation on test dataset
 #-------------------------------------------------------------------------------------
@@ -124,7 +126,7 @@ with torch.no_grad():
 
     print(f"Test:\nLoss: {test_loss:.4f} | Acc: {test_acc:.4f} | ")
     
-p, r, f1 = precision_recall_f1_binary(logits_te.argmax(dim=1), y_test_tensor)
+p, r, f1 = macro_precision_recall_f1(logits_te.argmax(dim=1), y_test_tensor, output_dim)
 
 print(f"Evaluation on the test set:")
 print(f"Test Loss: {test_loss}")
@@ -134,7 +136,7 @@ print(f"Test recall: {r}")
 print(f"Test f1-score: {f1}")
 print(f"Test Energy: {energy_te:.4f}")
 
-with open(out_dir + "/breast_snn_bp.txt", "w", encoding="utf-8") as f:
+with open(out_dir + "/iris_snn_bp.txt", "w", encoding="utf-8") as f:
     f.write("Evaluation on the test set\n")
     f.write(f"Test Loss: {test_loss:.5f}\n")
     f.write(f"Test Acc: {test_acc:.5f}\n")
