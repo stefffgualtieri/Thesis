@@ -19,7 +19,7 @@ from functions.SNNProblem_snn import SNNProblem_snn
 #----------------------------------------------
 random_state = 42
 
-iris = load_iris()
+iris = load_breast_cancer()
 X = iris.data.astype(np.float32)
 y = iris.target.astype(np.int64)
 
@@ -86,7 +86,7 @@ upd = SNNProblem_snn(
 #-------------------------------------------
 prob = pg.problem(upd)
 
-algo = pg.algorithm(pg.sga(
+algo = pg.algorithm(pg.pso(
     gen=gen
 ))
 algo.set_verbosity(1)   #for visualization
@@ -118,7 +118,7 @@ with torch.no_grad():
     test_acc = (test_pred == y_test_tensor).float().mean().item()
     test_loss = ce(logits_te, y_test_tensor).item()
     
-    p, r, f1 = macro_precision_recall_f1(test_pred, y_test_tensor, num_classes)
+    p, r, f1 = precision_recall_f1_binary(test_pred, y_test_tensor)
     energy_te = energy_te.item()
     
     print(f"Acc Train: {acc_tr} | Acc Test: {test_acc}")
@@ -131,9 +131,9 @@ print(f"Test recall: {r}")
 print(f"Test f1-score: {f1}")
 print(f"Test Energy per sample: {(energy_te / T):.5f}")
 
-out_dir = 'results/iris/snn/sga'
+out_dir = 'results/breast_cancer/snn/gwo'
 
-with open(out_dir + "/iris_snn_sga_3.txt", "w", encoding="utf-8") as f:
+with open(out_dir + "/breast_snn_gwo_4.txt", "w", encoding="utf-8") as f:
     f.write("Evaluation on the test set\n")
     f.write(f"Test Loss: {test_loss:.5f}\n")
     f.write(f"Test Acc: {test_acc:.5f}\n")
