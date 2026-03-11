@@ -3,19 +3,20 @@ import numpy as np
 # =========================
 # OUTPUT FILE NAME
 # =========================
-output_dir = 'results/iris/snn/gaco/'
-output_file = output_dir + "gaco_iris_results_summary.txt"
+output_dir = 'results/wine/snn/bee/'
+output_file = output_dir + "bee_wine_results_summary.txt"
 
 # =========================
 # INSERT HERE YOUR 5 VALUES
 # =========================
 results = {
-    "Accuracy":  [0.86667, 0.86667, 0.83333, 0.96667, 0.96667],
-    "Precision": [0.86742, 0.87963, 0.84982, 0.96970, 0.96970],
-    "Recall":    [0.86667, 0.86667, 0.83333, 0.96667, 0.96667],
-    "F1-score":  [0.86705, 0.87310, 0.84149, 0.96818, 0.96818],
-    "ASN":       [321.60000, 477.70000, 297.45000, 279.65000, 279.65000]
+    "Accuracy":  [0.86111, 0.94444, 0.91667, 0.94444, 0.83333],
+    "Precision": [0.86406, 0.95833, 0.93056, 0.95833, 0.84630],
+    "Recall":    [0.85794, 0.93333, 0.90556, 0.93333, 0.83413],
+    "F1-score":  [0.86099, 0.94567, 0.91789, 0.94567, 0.84017],
+    "ASN":       [528.60000, 502.20000, 498.25000, 523.75000, 517.35000]
 }
+
 with open(output_file, "w", encoding="utf-8") as f:
     f.write("Results summary\n")
     f.write("=========================\n\n")
