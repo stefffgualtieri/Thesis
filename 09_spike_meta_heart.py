@@ -1,6 +1,4 @@
-from functions.load_digits import load_digits, load_digits_binary, load_digits_one_all
-
-from functions.load_adult_balanced import load_adult_balanced
+from functions.load_heart import load_heart_disease
 import torch
 import torch.nn as nn
 import pygmo as pg
@@ -9,12 +7,12 @@ from models.spike_nn import SpikeNeuralNetwork
 from functions.SNNProblem_snn import SNNProblem_snn
 
 from functions.utils.utils import dim_from_layers, get_linear_layers, vector_to_weights
-from functions.metrics import macro_precision_recall_f1, precision_recall_f1_binary
+from functions.metrics import precision_recall_f1_binary
 
 #--------------------------
 # Load Dataset
 #--------------------------
-X_train, X_test, y_train, y_test = load_digits_one_all(target_digit=1, balanced=True)
+X_train, X_test, y_train, y_test = load_heart_disease()
 
 # # Sanity Check
 print("Train:", X_train.shape, y_train.shape)
@@ -22,11 +20,9 @@ print("Test :", X_test.shape, y_test.shape)
 print(torch.bincount(y_train))
 print(torch.bincount(y_test))
 
-# print("Classes in train:", torch.unique(y_train))
-# print("Classes in test :", torch.unique(y_test))
-
 #parameters
 input_dim = X_train.shape[1]
+print(f"Inpuitd dim: {input_dim}")
 hidden_dim = 8
 output_dim = 2
 bias = False
@@ -36,7 +32,7 @@ threshold = 1.0
 T = 20
 
 gen = 50
-pop_size = 30
+pop_size = 20
 
 # Defining the newtork
 net = SpikeNeuralNetwork(
@@ -68,7 +64,7 @@ upd = SNNProblem_snn(
 )
 
 prob = pg.problem(upd)
-algo = pg.algorithm(pg.gwo(
+algo = pg.algorithm(pg.de(
     gen=gen
 ))
 algo.set_verbosity(1)
@@ -104,7 +100,7 @@ with torch.no_grad():
     p, r, f1 = precision_recall_f1_binary(pred_te, y_test)
 
 
-out_dir = "results/digits/snn/gwo"
+out_dir = "results/heart/snn/de"
 
 print(f"Evaluation on the test set:")
 print(f"Test Loss: {loss_te}")
@@ -114,7 +110,7 @@ print(f"Test recall: {r}")
 print(f"Test f1-score: {f1}")
 print(f"Test Energy per sample: {energy_te / T:.4f}")
 
-with open(out_dir + "/digits_snn_gwo_2.txt", "w", encoding="utf-8") as f:
+with open(out_dir + "/heart_snn_de_5.txt", "w", encoding="utf-8") as f:
     f.write("Evaluation on the test set\n")
     f.write(f"Test Loss: {loss_te:.5f}\n")
     f.write(f"Test Acc: {acc_te:.5f}\n")

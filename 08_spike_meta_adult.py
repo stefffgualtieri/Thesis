@@ -1,4 +1,5 @@
-from functions.load_heart import load_heart_disease
+from functions.load_adult import load_adult
+from functions.load_adult_balanced import load_adult_balanced
 import torch
 import torch.nn as nn
 import pygmo as pg
@@ -7,25 +8,21 @@ from models.spike_nn import SpikeNeuralNetwork
 from functions.SNNProblem_snn import SNNProblem_snn
 
 from functions.utils.utils import dim_from_layers, get_linear_layers, vector_to_weights
-from functions.metrics import macro_precision_recall_f1, precision_recall_f1_binary
+from functions.metrics import precision_recall_f1_binary
 
 #--------------------------
 # Load Dataset
 #--------------------------
-X_train, X_test, y_train, y_test = load_heart_disease()
+X_train, X_test, y_train, y_test = load_adult()
 
-# # Sanity Check
-print("Train:", X_train.shape, y_train.shape)
-print("Test :", X_test.shape, y_test.shape)
-print(torch.bincount(y_train))
-print(torch.bincount(y_test))
-
-# print("Classes in train:", torch.unique(y_train))
-# print("Classes in test :", torch.unique(y_test))
+# Sanity Check
+# print("Train:", X_train.shape, y_train.shape)
+# print("Test :", X_test.shape, y_test.shape)
+# print("Train positive rate:", y_train.float().mean().item())
+# print("Test  positive rate:", y_test.float().mean().item())
 
 #parameters
 input_dim = X_train.shape[1]
-print(f"Inpuitd dim: {input_dim}")
 hidden_dim = 8
 output_dim = 2
 bias = False
@@ -34,8 +31,8 @@ beta = 0.95
 threshold = 1.0
 T = 20
 
-gen = 50
-pop_size = 20
+gen = 100
+pop_size = 40
 
 # Defining the newtork
 net = SpikeNeuralNetwork(
@@ -67,9 +64,8 @@ upd = SNNProblem_snn(
 )
 
 prob = pg.problem(upd)
-algo = pg.algorithm(pg.bee_colony(
-    gen=gen,
-    limit=5
+algo = pg.algorithm(pg.pso(
+    gen=gen
 ))
 algo.set_verbosity(1)
 pop = pg.population(prob, size=pop_size, seed=42)
@@ -104,7 +100,7 @@ with torch.no_grad():
     p, r, f1 = precision_recall_f1_binary(pred_te, y_test)
 
 
-out_dir = "results/heart/snn/bee"
+out_dir = "results/adult/snn/pso"
 
 print(f"Evaluation on the test set:")
 print(f"Test Loss: {loss_te}")
@@ -112,9 +108,9 @@ print(f"Test Acc: {acc_te}")
 print(f"Test precision: {p}")
 print(f"Test recall: {r}")
 print(f"Test f1-score: {f1}")
-print(f"Test Energy per sample: {energy_te / T:.4f}")
+print(f"Test Energy: {energy_te / T:.4f}")
 
-with open(out_dir + "/heart_snn_bee_1.txt", "w", encoding="utf-8") as f:
+with open(out_dir + "/adult_snn_pso_4.txt", "w", encoding="utf-8") as f:
     f.write("Evaluation on the test set\n")
     f.write(f"Test Loss: {loss_te:.5f}\n")
     f.write(f"Test Acc: {acc_te:.5f}\n")
@@ -122,3 +118,8 @@ with open(out_dir + "/heart_snn_bee_1.txt", "w", encoding="utf-8") as f:
     f.write(f"Test Recall: {r:.5f}\n")
     f.write(f"Test f1: {f1:.5f}\n")
     f.write(f"Test Energy per sample: {(energy_te / T):.5f}")
+
+
+#Resul: Test loss: 5.2917 | Test acc: 0.8700
+#Result: Test loss: 0.3772 | Test acc: 0.8500
+#Result: Test loss: 0.4707 | Test acc: 0.8400
